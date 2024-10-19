@@ -1,13 +1,12 @@
+// cmd/api/main.go
 package main
 
 import (
+	"bizarre-vpn-api/internal/api/routes"
 	"bizarre-vpn-api/pkg/logger"
 	"github.com/joho/godotenv"
 	"log"
-	"net/http"
 	"os"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -18,15 +17,10 @@ func main() {
 	apiPort := os.Getenv("API_PORT")
 	if apiPort == "" {
 		logger.Error.Printf("API_PORT not found")
+		return
 	}
 
-	r := gin.Default()
-
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	r := routes.SetupRouter()
 
 	if err := r.Run(apiPort); err != nil {
 		log.Fatalf("Error starting API: %v", err)
