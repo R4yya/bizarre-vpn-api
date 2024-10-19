@@ -26,3 +26,6 @@ go.work.sum
 
 # JetBrains Goland IDE folder
 .idea
+
+# Swagger documentation
+/docs
