@@ -6,6 +6,7 @@ import (
 	"bizarre-vpn-api/pkg/logger"
 	"fmt"
 	"github.com/joho/godotenv"
+	"log"
 	"os"
 )
 
@@ -15,7 +16,10 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	logger.Init("api")
+	err := logger.Init("api")
+	if err != nil {
+		log.Fatalf("Error initiating logger: %v", err)
+	}
 	defer logger.Close()
 
 	if err := godotenv.Load(); err != nil {

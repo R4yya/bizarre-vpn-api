@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -12,7 +13,10 @@ import (
 )
 
 func main() {
-	logger.Init("bot")
+	err := logger.Init("bot")
+	if err != nil {
+		log.Fatalf("Error initiating logger: %v", err)
+	}
 
 	if err := godotenv.Load(); err != nil {
 		logger.Error(err)
