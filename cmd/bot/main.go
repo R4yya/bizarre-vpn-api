@@ -22,12 +22,14 @@ func main() {
 	if botToken == "" {
 		err := fmt.Errorf("TELEGRAM_BOT_TOKEN not found")
 		logger.Error(err)
+		return
 	}
 
 	webAppUrl := os.Getenv("WEB_APP_URL")
 	if webAppUrl == "" {
 		err := fmt.Errorf("WEB_APP_URL not found")
 		logger.Error(err)
+		return
 	}
 
 	botSettings := tele.Settings{

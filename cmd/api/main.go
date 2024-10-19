@@ -20,6 +20,7 @@ func main() {
 
 	if err := godotenv.Load(); err != nil {
 		logger.Error(err)
+		return
 	}
 
 	apiPort := os.Getenv("API_PORT")
@@ -42,5 +43,6 @@ func main() {
 
 	if err := r.Run(apiPort); err != nil {
 		logger.Error(err)
+		return
 	}
 }
