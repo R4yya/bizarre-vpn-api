@@ -4,8 +4,8 @@ import (
 	_ "bizarre-vpn-api/docs"
 	"bizarre-vpn-api/internal/api/routes"
 	"bizarre-vpn-api/pkg/logger"
+	"fmt"
 	"github.com/joho/godotenv"
-	"log"
 	"os"
 )
 
@@ -15,25 +15,32 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
+	logger.Init("api")
+	defer logger.Close()
+
 	if err := godotenv.Load(); err != nil {
-		logger.Error.Printf("Error loading .env : %v", err)
+		logger.Error(err)
 	}
 
 	apiPort := os.Getenv("API_PORT")
 	if apiPort == "" {
-		logger.Error.Printf("API_PORT not found")
+		err := fmt.Errorf("API_PORT not found")
+		logger.Error(err)
 		return
 	}
 
 	swaggerPath := os.Getenv("SWAGGER_PATH")
 	if swaggerPath == "" {
-		logger.Error.Printf("SWAGGER_PATH not found")
+		err := fmt.Errorf("SWAGGER_PATH not found")
+		logger.Error(err)
 		return
 	}
 
 	r := routes.SetupRouter(swaggerPath)
 
+	logger.Info("API successfully started")
+
 	if err := r.Run(apiPort); err != nil {
-		log.Fatalf("Error starting API: %v", err)
+		logger.Error(err)
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -11,20 +12,22 @@ import (
 )
 
 func main() {
-	logger.Init()
+	logger.Init("bot")
 
 	if err := godotenv.Load(); err != nil {
-		logger.Error.Printf("Error loading .env : %v", err)
+		logger.Error(err)
 	}
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
-		logger.Error.Printf("TELEGRAM_BOT_TOKEN not found")
+		err := fmt.Errorf("TELEGRAM_BOT_TOKEN not found")
+		logger.Error(err)
 	}
 
 	webAppUrl := os.Getenv("WEB_APP_URL")
 	if webAppUrl == "" {
-		logger.Error.Printf("WEB_APP_URL not found")
+		err := fmt.Errorf("WEB_APP_URL not found")
+		logger.Error(err)
 	}
 
 	botSettings := tele.Settings{
@@ -34,13 +37,13 @@ func main() {
 
 	b, err := tele.NewBot(botSettings)
 	if err != nil {
-		logger.Error.Printf("Error creating bot: %v", err)
+		logger.Error(err)
 		return
 	}
 
 	bot.RegisterHandlers(b, webAppUrl)
 
-	logger.Info.Println("Bot successfully started")
+	logger.Info("Bot successfully started")
 
 	b.Start()
 }
