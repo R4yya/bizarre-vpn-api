@@ -67,7 +67,7 @@ func Close() {
 	}
 }
 
-// Info логирует информационное сообщение
+// Info logs info message
 func Info(message string) {
 	infoLogger.Println(message)
 }
