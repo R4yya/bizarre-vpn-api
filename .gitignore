@@ -32,3 +32,6 @@ go.work.sum
 
 # Services logs
 /logs
+
+# Database
+/data
