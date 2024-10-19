@@ -29,3 +29,6 @@ go.work.sum
 
 # Swagger documentation
 /docs
+
+# Services logs
+/logs
