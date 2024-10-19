@@ -23,9 +23,3 @@ go.work.sum
 
 # env file
 .env
-
-# JetBrains Goland IDE folder
-.idea
-
-# Swagger documentation
-/docs
