@@ -18,21 +18,28 @@ var (
 
 // Init initializes loggers and opens files for a specific component
 func Init(component string) {
+	if _, err := os.Stat("logs"); os.IsNotExist(err) {
+		if err := os.Mkdir("logs", 0755); err != nil {
+			log.Fatalf("Failed to create logs folder: %v", err)
+		}
+	}
+
 	var err error
 
-	mainLogFile, err = os.OpenFile("main.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	mainLogFile, err = os.OpenFile("logs/main.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Не удалось открыть основной файл для логирования: %v", err)
+		log.Fatalf("Failed to open main file for logging: %v", err)
 	}
 
-	componentLog, err = os.OpenFile(fmt.Sprintf("%s.log", component), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	// Открываем лог-файлы для конкретного компонента
+	componentLog, err = os.OpenFile(fmt.Sprintf("logs/%s.log", component), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Не удалось открыть файл для логирования компонента %s: %v", component, err)
+		log.Fatalf("Failed to open file for component logging %s: %v", component, err)
 	}
 
-	debugFile, err = os.OpenFile(fmt.Sprintf("%s-debug.log", component), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	debugFile, err = os.OpenFile(fmt.Sprintf("logs/%s-debug.log", component), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		log.Fatalf("Не удалось открыть файл для отладочного логирования компонента %s: %v", component, err)
+		log.Fatalf("Failed to open file for debug logging component %s: %v", component, err)
 	}
 
 	infoLogger = log.New(componentLog, "INFO: ", log.Ldate|log.Ltime|log.Lmicroseconds)
@@ -43,13 +50,22 @@ func Init(component string) {
 // Close closes all logs files
 func Close() {
 	if mainLogFile != nil {
-		mainLogFile.Close()
+		err := mainLogFile.Close()
+		if err != nil {
+			log.Fatalf("Failed to close main log: %v", err)
+		}
 	}
 	if componentLog != nil {
-		componentLog.Close()
+		err := componentLog.Close()
+		if err != nil {
+			log.Fatalf("Failed to close component log: %v", err)
+		}
 	}
 	if debugFile != nil {
-		debugFile.Close()
+		err := debugFile.Close()
+		if err != nil {
+			log.Fatalf("Failed to close debug log: %v", err)
+		}
 	}
 }
 
