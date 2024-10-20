@@ -23,19 +23,19 @@ func main() {
 	}
 	defer logger.Close()
 
-	if err := godotenv.Load(); err != nil {
+	if err = godotenv.Load(); err != nil {
 		logger.Error(err)
 		return
 	}
 
 	dbPath := os.Getenv("DATABASE_PATH")
 	if dbPath == "" {
-		err := fmt.Errorf("DATABASE_PATH not found")
+		err = fmt.Errorf("DATABASE_PATH not found")
 		logger.Error(err)
 		return
 	}
 
-	if err := storage.InitDB(dbPath); err != nil {
+	if err = storage.InitDB(dbPath); err != nil {
 		logger.Error(err)
 		return
 	}
@@ -45,14 +45,14 @@ func main() {
 
 	apiPort := os.Getenv("API_PORT")
 	if apiPort == "" {
-		err := fmt.Errorf("API_PORT not found")
+		err = fmt.Errorf("API_PORT not found")
 		logger.Error(err)
 		return
 	}
 
 	swaggerPath := os.Getenv("SWAGGER_PATH")
 	if swaggerPath == "" {
-		err := fmt.Errorf("SWAGGER_PATH not found")
+		err = fmt.Errorf("SWAGGER_PATH not found")
 		logger.Error(err)
 		return
 	}
@@ -61,7 +61,7 @@ func main() {
 
 	logger.Info("API successfully started")
 
-	if err := r.Run(apiPort); err != nil {
+	if err = r.Run(apiPort); err != nil {
 		logger.Error(err)
 		return
 	}
