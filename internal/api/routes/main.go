@@ -11,6 +11,8 @@ func SetupRouter(swaggerPath string) *gin.Engine {
 
 	RegisterPingRoute(router)
 
+	RegisterUserRoutes(router)
+
 	router.GET(swaggerPath+"/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return router
