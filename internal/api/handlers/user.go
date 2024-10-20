@@ -9,10 +9,10 @@ import (
 )
 
 type UserAuthorizationRequest struct {
-	TelegramID   int64  `json:"telegram_id" binding:"required"`
+	TelegramID   int64  `json:"telegramID" binding:"required"`
 	Username     string `json:"username"`
-	LanguageCode string `json:"language_code"`
-	IsBot        bool   `json:"is_bot"`
+	LanguageCode string `json:"languageCode"`
+	IsBot        bool   `json:"isBot"`
 }
 
 type MessageResponse struct {
