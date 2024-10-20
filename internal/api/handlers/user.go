@@ -26,7 +26,7 @@ type MessageResponse struct {
 // @Accept json
 // @Produce json
 // @Param user body UserAuthorizationRequest true "User Information"
-// @Success 200 {object} UserAuthorizationRequest "The user authorized"
+// @Success 200 {object} models.User "The user authorized"
 // @Success 201 {object} models.User "A new user has been successfully created"
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
 // @Failure 500 {object} MessageResponse "Internal server error"
