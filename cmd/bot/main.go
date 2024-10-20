@@ -18,20 +18,20 @@ func main() {
 		log.Fatalf("Error initiating logger: %v", err)
 	}
 
-	if err := godotenv.Load(); err != nil {
+	if err = godotenv.Load(); err != nil {
 		logger.Error(err)
 	}
 
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	if botToken == "" {
-		err := fmt.Errorf("TELEGRAM_BOT_TOKEN not found")
+		err = fmt.Errorf("TELEGRAM_BOT_TOKEN not found")
 		logger.Error(err)
 		return
 	}
 
 	webAppUrl := os.Getenv("WEB_APP_URL")
 	if webAppUrl == "" {
-		err := fmt.Errorf("WEB_APP_URL not found")
+		err = fmt.Errorf("WEB_APP_URL not found")
 		logger.Error(err)
 		return
 	}
