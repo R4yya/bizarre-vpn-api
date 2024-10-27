@@ -13,11 +13,11 @@ type SubscriptionPlanRequest struct {
 	Country        string  `json:"country" binding:"required"`
 	Name           string  `json:"name" binding:"required"`
 	Description    string  `json:"description"`
-	DurationMonths int     `json:"durationMonths" binding:"required,gte=1"`
+	DurationMonths int     `json:"durationMonths"`
 	DataLimitGB    *int    `json:"dataLimitGb"`
 	SpeedLimitMbps *int    `json:"speedLimitMbps"`
-	DeviceLimit    int     `json:"deviceLimit" binding:"required,gte=1"`
-	Price          float64 `json:"price" binding:"required,gte=0.01"`
+	DeviceLimit    int     `json:"deviceLimit"`
+	Price          float64 `json:"price"`
 }
 
 // CreatePlanHandler creates a new subscription plan
