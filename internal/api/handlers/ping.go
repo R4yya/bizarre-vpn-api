@@ -15,7 +15,7 @@ type MessageResponse struct {
 // @Tags Health
 // @Accept json
 // @Produce json
-// @Success 200 {object} PingResponse
+// @Success 200 {object} MessageResponse
 // @Router /ping [get]
 func PingHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, MessageResponse{Message: "pong"})
