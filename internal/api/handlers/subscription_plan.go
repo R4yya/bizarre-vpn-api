@@ -35,6 +35,7 @@ func CreatePlanHandler(c *gin.Context) {
 	var req SubscriptionPlanRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
@@ -134,6 +135,7 @@ func UpdatePlanHandler(c *gin.Context) {
 
 	var req SubscriptionPlanRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
@@ -180,7 +182,7 @@ func DeletePlanHandler(c *gin.Context) {
 		return
 	}
 
-	if err := services.DeletePlan(id); err != nil {
+	if err = services.DeletePlan(id); err != nil {
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
