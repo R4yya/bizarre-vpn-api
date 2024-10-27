@@ -10,8 +10,8 @@ func SetupRouter(swaggerPath string) *gin.Engine {
 	router := gin.Default()
 
 	RegisterPingRoute(router)
-
 	RegisterUserRoutes(router)
+	RegisterSubscriptionPlanRoutes(router)
 
 	router.GET(swaggerPath+"/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
