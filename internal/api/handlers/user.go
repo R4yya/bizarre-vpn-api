@@ -3,7 +3,9 @@ package handlers
 import (
 	"bizarre-vpn-api/internal/storage/models"
 	"bizarre-vpn-api/internal/storage/services"
+	"bizarre-vpn-api/pkg/custom_errors"
 	"bizarre-vpn-api/pkg/logger"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -50,6 +52,11 @@ func AuthorizeUserHandler(c *gin.Context) {
 
 	userID, err := services.RegisterUser(user)
 	if err != nil {
+		if errors.Is(err, custom_errors.ErrUserAlreadyExists) {
+			logger.Error(err)
+			c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
+			return
+		}
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
