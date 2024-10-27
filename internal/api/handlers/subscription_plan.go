@@ -13,8 +13,8 @@ type SubscriptionPlanRequest struct {
 	Country        string  `json:"country" binding:"required"`
 	Name           string  `json:"name" binding:"required"`
 	Description    string  `json:"description"`
-	DurationMonths int     `json:"duration_months" binding:"required"`
-	DataLimitGB    *int    `json:"dataLimitGB"`
+	DurationMonths int     `json:"durationMonths" binding:"required"`
+	DataLimitGB    *int    `json:"dataLimitGb"`
 	SpeedLimitMbps *int    `json:"speedLimitMbps"`
 	DeviceLimit    int     `json:"deviceLimit" binding:"required"`
 	Price          float64 `json:"price" binding:"required"`

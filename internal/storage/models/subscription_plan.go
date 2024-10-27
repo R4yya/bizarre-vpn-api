@@ -6,9 +6,9 @@ type SubscriptionPlan struct {
 	Country        string  `db:"country" json:"country"`
 	Name           string  `db:"name" json:"name"`
 	Description    string  `db:"description" json:"description"`
-	DurationMonths int     `db:"duration_months" json:"duration_months"`
-	DataLimitGB    *int    `db:"data_limit_gb" json:"data_limit_gb"`       // NULL for unlimited use
-	SpeedLimitMbps *int    `db:"speed_limit_mbps" json:"speed_limit_mbps"` // NULL for unlimited
-	DeviceLimit    int     `db:"device_limit" json:"device_limit"`
+	DurationMonths int     `db:"duration_months" json:"durationMonths"`
+	DataLimitGB    *int    `db:"data_limit_gb" json:"dataLimitGb"`       // NULL for unlimited use
+	SpeedLimitMbps *int    `db:"speed_limit_mbps" json:"speedLimitMbps"` // NULL for unlimited
+	DeviceLimit    int     `db:"device_limit" json:"deviceLimit"`
 	Price          float64 `db:"price" json:"price"`
 }
