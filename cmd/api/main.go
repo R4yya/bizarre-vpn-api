@@ -41,8 +41,6 @@ func main() {
 	}
 	defer storage.CloseDB()
 
-	//db := storage.GetDB()
-
 	apiPort := os.Getenv("API_PORT")
 	if apiPort == "" {
 		err = fmt.Errorf("API_PORT not found")

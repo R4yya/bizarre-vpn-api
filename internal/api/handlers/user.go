@@ -3,7 +3,9 @@ package handlers
 import (
 	"bizarre-vpn-api/internal/storage/models"
 	"bizarre-vpn-api/internal/storage/services"
+	"bizarre-vpn-api/pkg/custom_errors"
 	"bizarre-vpn-api/pkg/logger"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -25,6 +27,7 @@ type UserAuthorizationRequest struct {
 // @Success 200 {object} models.User "The user authorized"
 // @Success 201 {object} models.User "A new user has been successfully created"
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
+// @Failure 409 {object} MessageResponse "User with this Telegram ID already exists"
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /user/auth [post]
 func AuthorizeUserHandler(c *gin.Context) {
@@ -50,6 +53,11 @@ func AuthorizeUserHandler(c *gin.Context) {
 
 	userID, err := services.RegisterUser(user)
 	if err != nil {
+		if errors.Is(err, custom_errors.ErrUserAlreadyExists) {
+			logger.Error(err)
+			c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
+			return
+		}
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return

@@ -3,6 +3,8 @@ package services
 import (
 	"bizarre-vpn-api/internal/storage/models"
 	"bizarre-vpn-api/internal/storage/repositories"
+	"bizarre-vpn-api/pkg/custom_errors"
+	"errors"
 	"fmt"
 )
 
@@ -25,6 +27,9 @@ func CreatePlan(plan *models.SubscriptionPlan) (int64, error) {
 func GetPlan(id int64) (*models.SubscriptionPlan, error) {
 	plan, err := repositories.GetSubscriptionPlanByID(id)
 	if err != nil {
+		if errors.Is(err, custom_errors.ErrPlanNotFound) {
+			return nil, custom_errors.ErrPlanNotFound
+		}
 		return nil, fmt.Errorf("error getting subscription plan by id: %v", err)
 	}
 
@@ -59,6 +64,9 @@ func UpdatePlan(plan *models.SubscriptionPlan) (*models.SubscriptionPlan, error)
 
 	err := repositories.UpdateSubscriptionPlan(plan)
 	if err != nil {
+		if errors.Is(err, custom_errors.ErrPlanNotFound) {
+			return nil, custom_errors.ErrPlanNotFound
+		}
 		return nil, fmt.Errorf("error updating subscription plan: %v", err)
 	}
 
@@ -69,6 +77,9 @@ func UpdatePlan(plan *models.SubscriptionPlan) (*models.SubscriptionPlan, error)
 func DeletePlan(id int64) error {
 	err := repositories.DeleteSubscriptionPlanByID(id)
 	if err != nil {
+		if errors.Is(err, custom_errors.ErrPlanNotFound) {
+			return custom_errors.ErrPlanNotFound
+		}
 		return fmt.Errorf("error deleting subscription plan by id: %v", err)
 	}
 

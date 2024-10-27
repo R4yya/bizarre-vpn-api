@@ -3,7 +3,9 @@ package handlers
 import (
 	"bizarre-vpn-api/internal/storage/models"
 	"bizarre-vpn-api/internal/storage/services"
+	"bizarre-vpn-api/pkg/custom_errors"
 	"bizarre-vpn-api/pkg/logger"
+	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -35,6 +37,7 @@ func CreatePlanHandler(c *gin.Context) {
 	var req SubscriptionPlanRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
@@ -77,14 +80,18 @@ func GetPlanHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: "invalid plan ID"})
 		return
 	}
 
 	plan, err := services.GetPlan(id)
-	if err != nil {
+	if errors.Is(err, custom_errors.ErrPlanNotFound) {
+		c.JSON(http.StatusNotFound, MessageResponse{Message: err.Error()})
+		return
+	} else if err != nil {
 		logger.Error(err)
-		c.JSON(http.StatusNotFound, MessageResponse{Message: "plan not found"})
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
 
@@ -128,12 +135,14 @@ func UpdatePlanHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: "invalid plan ID"})
 		return
 	}
 
 	var req SubscriptionPlanRequest
 	if err = c.ShouldBindJSON(&req); err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
 		return
 	}
@@ -152,6 +161,11 @@ func UpdatePlanHandler(c *gin.Context) {
 
 	updatedPlan, err := services.UpdatePlan(plan)
 	if err != nil {
+		if errors.Is(err, custom_errors.ErrPlanNotFound) {
+			logger.Error(err)
+			c.JSON(http.StatusNotFound, MessageResponse{Message: err.Error()})
+			return
+		}
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
@@ -176,11 +190,17 @@ func DeletePlanHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		logger.Error(err)
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: "invalid plan ID"})
 		return
 	}
 
-	if err := services.DeletePlan(id); err != nil {
+	if err = services.DeletePlan(id); err != nil {
+		if errors.Is(err, custom_errors.ErrPlanNotFound) {
+			logger.Error(err)
+			c.JSON(http.StatusNotFound, MessageResponse{Message: err.Error()})
+			return
+		}
 		logger.Error(err)
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return

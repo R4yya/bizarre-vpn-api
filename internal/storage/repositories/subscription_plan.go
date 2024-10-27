@@ -3,6 +3,9 @@ package repositories
 import (
 	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/pkg/custom_errors"
+	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -32,6 +35,9 @@ func GetSubscriptionPlanByID(id int64) (*models.SubscriptionPlan, error) {
 	query := "SELECT * FROM subscription_plans WHERE id = ?"
 	err := storage.GetDB().Get(&plan, query, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, custom_errors.ErrPlanNotFound
+		}
 		return nil, fmt.Errorf("failed to get subscription plan: %w", err)
 	}
 
@@ -61,9 +67,19 @@ func UpdateSubscriptionPlan(plan *models.SubscriptionPlan) error {
         price = :price
     WHERE id = :id
     `
-	_, err := storage.GetDB().NamedExec(query, plan)
+
+	result, err := storage.GetDB().NamedExec(query, plan)
 	if err != nil {
 		return fmt.Errorf("failed to update subscription plan: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get affected rows: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return custom_errors.ErrPlanNotFound
 	}
 	return nil
 }
@@ -82,7 +98,7 @@ func DeleteSubscriptionPlanByID(id int64) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("no subscription plan found with ID %d", id)
+		return custom_errors.ErrPlanNotFound
 	}
 
 	return nil

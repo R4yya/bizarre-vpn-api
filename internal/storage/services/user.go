@@ -3,6 +3,7 @@ package services
 import (
 	"bizarre-vpn-api/internal/storage/models"
 	"bizarre-vpn-api/internal/storage/repositories"
+	"bizarre-vpn-api/pkg/custom_errors"
 	"fmt"
 )
 
@@ -19,7 +20,7 @@ func GetUser(telegramID int64) (*models.User, error) {
 func RegisterUser(user *models.User) (int64, error) {
 	existingUser, err := repositories.GetUserByTelegramID(user.TelegramID)
 	if err == nil && existingUser != nil {
-		return 0, fmt.Errorf("user with Telegram ID %d already exists", user.TelegramID)
+		return 0, custom_errors.ErrUserAlreadyExists
 	}
 
 	userID, err := repositories.CreateUser(user)

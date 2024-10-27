@@ -3,6 +3,9 @@ package repositories
 import (
 	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/pkg/custom_errors"
+	"database/sql"
+	"errors"
 	"fmt"
 )
 
@@ -32,6 +35,9 @@ func GetUserByTelegramID(telegramID int64) (*models.User, error) {
 	query := "SELECT * FROM users WHERE telegram_id = ?"
 	err := storage.GetDB().Get(&user, query, telegramID)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, custom_errors.ErrUserNotFound
+		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
