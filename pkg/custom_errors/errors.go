@@ -10,3 +10,9 @@ var (
 	// ErrUserAlreadyExists occurs if a user with the specified Telegram ID already exists
 	ErrUserAlreadyExists = errors.New("user with this Telegram ID already exists")
 )
+
+// Subscription plans errors
+var (
+	// ErrPlanNotFound occurs if the plan is not found in the database
+	ErrPlanNotFound = errors.New("subscription plan not found")
+)
