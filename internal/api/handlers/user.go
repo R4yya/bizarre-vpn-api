@@ -27,6 +27,7 @@ type UserAuthorizationRequest struct {
 // @Success 200 {object} models.User "The user authorized"
 // @Success 201 {object} models.User "A new user has been successfully created"
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
+// @Failure 409 {object} MessageResponse "User with this Telegram ID already exists"
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /user/auth [post]
 func AuthorizeUserHandler(c *gin.Context) {
