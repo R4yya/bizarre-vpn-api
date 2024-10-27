@@ -21,6 +21,16 @@ type SubscriptionPlanRequest struct {
 }
 
 // CreatePlanHandler creates a new subscription plan
+// @Summary Create a plan
+// @Description Creates a new plan with the specified details
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param plan body SubscriptionPlanRequest true "Plan Data"
+// @Success 201 {object} models.SubscriptionPlan "Successfully created plan"
+// @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /plans [post]
 func CreatePlanHandler(c *gin.Context) {
 	var req SubscriptionPlanRequest
 
@@ -52,6 +62,17 @@ func CreatePlanHandler(c *gin.Context) {
 }
 
 // GetPlanHandler returns the subscription plan by ID
+// @Summary Get a plan by ID
+// @Description Retrieves a plan by its unique identifier
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param id path int true "Plan ID"
+// @Success 200 {object} models.SubscriptionPlan "Plan details"
+// @Failure 400 {object} MessageResponse "Invalid plan ID"
+// @Failure 404 {object} MessageResponse "Plan not found"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /plans/{id} [get]
 func GetPlanHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -71,6 +92,14 @@ func GetPlanHandler(c *gin.Context) {
 }
 
 // GetAllPlansHandler returns all available subscription plans
+// @Summary Get all plans
+// @Description Retrieves all available plans
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Success 200 {array} models.SubscriptionPlan "List of all plans"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /plans [get]
 func GetAllPlansHandler(c *gin.Context) {
 	plans, err := services.GetAllPlans()
 	if err != nil {
@@ -83,6 +112,18 @@ func GetAllPlansHandler(c *gin.Context) {
 }
 
 // UpdatePlanHandler updates the subscription plan by ID
+// @Summary Update a plan
+// @Description Updates the plan with the specified details
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param id path int true "Plan ID"
+// @Param plan body SubscriptionPlanRequest true "Updated Plan Data"
+// @Success 200 {object} models.SubscriptionPlan "Successfully updated plan"
+// @Failure 400 {object} MessageResponse "Invalid plan ID or request body"
+// @Failure 404 {object} MessageResponse "Plan not found"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /plans/{id} [put]
 func UpdatePlanHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
@@ -120,6 +161,17 @@ func UpdatePlanHandler(c *gin.Context) {
 }
 
 // DeletePlanHandler deletes the subscription plan by ID
+// @Summary Delete a plan by ID
+// @Description Deletes the plan with the specified ID
+// @Tags Plans
+// @Accept json
+// @Produce json
+// @Param id path int true "Plan ID"
+// @Success 200 {object} MessageResponse "Successfully deleted plan"
+// @Failure 400 {object} MessageResponse "Invalid plan ID"
+// @Failure 404 {object} MessageResponse "Plan not found"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /plans/{id} [delete]
 func DeletePlanHandler(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
