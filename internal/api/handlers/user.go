@@ -15,10 +15,6 @@ type UserAuthorizationRequest struct {
 	IsBot        bool   `json:"isBot"`
 }
 
-type MessageResponse struct {
-	Message string `json:"message"`
-}
-
 // AuthorizeUserHandler processes the user authorization request
 // @Summary User authorization
 // @Description Authorize a user and register if it is not already in the database
