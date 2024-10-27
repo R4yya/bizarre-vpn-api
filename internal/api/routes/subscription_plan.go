@@ -6,7 +6,7 @@ import (
 )
 
 func RegisterSubscriptionPlanRoutes(router *gin.Engine) {
-	subscriptionGroup := router.Group("/subscriptions")
+	subscriptionGroup := router.Group("/plans")
 
 	subscriptionGroup.POST("/", handlers.CreatePlanHandler)
 	subscriptionGroup.GET("/", handlers.GetAllPlansHandler)
