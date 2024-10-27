@@ -21,9 +21,9 @@ type SubscriptionPlanRequest struct {
 }
 
 // CreatePlanHandler creates a new subscription plan
-// @Summary Create a plan
+// @Summary Create a subscription plan
 // @Description Creates a new subscription plan with the specified details
-// @Tags Plans
+// @Tags Subscription Plans
 // @Accept json
 // @Produce json
 // @Param plan body SubscriptionPlanRequest true "Plan Data"
@@ -62,9 +62,9 @@ func CreatePlanHandler(c *gin.Context) {
 }
 
 // GetPlanHandler returns the subscription plan by ID
-// @Summary Get a plan by ID
+// @Summary Get a plan subscription by ID
 // @Description Retrieves a subscription plan by its unique identifier
-// @Tags Plans
+// @Tags Subscription Plans
 // @Accept json
 // @Produce json
 // @Param id path int true "Plan ID"
@@ -92,9 +92,9 @@ func GetPlanHandler(c *gin.Context) {
 }
 
 // GetAllPlansHandler returns all available subscription plans
-// @Summary Get all plans
+// @Summary Get all subscription plans
 // @Description Retrieves all available subscription plans
-// @Tags Plans
+// @Tags Subscription Plans
 // @Accept json
 // @Produce json
 // @Success 200 {array} models.SubscriptionPlan "List of all plans"
@@ -112,9 +112,9 @@ func GetAllPlansHandler(c *gin.Context) {
 }
 
 // UpdatePlanHandler updates the subscription plan by ID
-// @Summary Update a plan
+// @Summary Update a subscription plan
 // @Description Updates the subscription plan with the specified details
-// @Tags Plans
+// @Tags Subscription Plans
 // @Accept json
 // @Produce json
 // @Param id path int true "Plan ID"
@@ -161,9 +161,9 @@ func UpdatePlanHandler(c *gin.Context) {
 }
 
 // DeletePlanHandler deletes the subscription plan by ID
-// @Summary Delete a plan by ID
+// @Summary Delete a subscription plan by ID
 // @Description Deletes the subscription plan with the specified ID
-// @Tags Plans
+// @Tags Subscription Plans
 // @Accept json
 // @Produce json
 // @Param id path int true "Plan ID"
