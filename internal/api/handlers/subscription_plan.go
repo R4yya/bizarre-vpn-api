@@ -22,7 +22,7 @@ type SubscriptionPlanRequest struct {
 
 // CreatePlanHandler creates a new subscription plan
 // @Summary Create a plan
-// @Description Creates a new plan with the specified details
+// @Description Creates a new subscription plan with the specified details
 // @Tags Plans
 // @Accept json
 // @Produce json
@@ -63,7 +63,7 @@ func CreatePlanHandler(c *gin.Context) {
 
 // GetPlanHandler returns the subscription plan by ID
 // @Summary Get a plan by ID
-// @Description Retrieves a plan by its unique identifier
+// @Description Retrieves a subscription plan by its unique identifier
 // @Tags Plans
 // @Accept json
 // @Produce json
@@ -93,7 +93,7 @@ func GetPlanHandler(c *gin.Context) {
 
 // GetAllPlansHandler returns all available subscription plans
 // @Summary Get all plans
-// @Description Retrieves all available plans
+// @Description Retrieves all available subscription plans
 // @Tags Plans
 // @Accept json
 // @Produce json
@@ -113,7 +113,7 @@ func GetAllPlansHandler(c *gin.Context) {
 
 // UpdatePlanHandler updates the subscription plan by ID
 // @Summary Update a plan
-// @Description Updates the plan with the specified details
+// @Description Updates the subscription plan with the specified details
 // @Tags Plans
 // @Accept json
 // @Produce json
@@ -162,7 +162,7 @@ func UpdatePlanHandler(c *gin.Context) {
 
 // DeletePlanHandler deletes the subscription plan by ID
 // @Summary Delete a plan by ID
-// @Description Deletes the plan with the specified ID
+// @Description Deletes the subscription plan with the specified ID
 // @Tags Plans
 // @Accept json
 // @Produce json
