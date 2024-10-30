@@ -22,7 +22,10 @@ go.work
 go.work.sum
 
 # env file
-.env
+.env.*
+
+# env template
+!.env.example
 
 # JetBrains Goland IDE folder
 .idea
@@ -36,3 +39,6 @@ go.work.sum
 # Database
 /data
 *.db
+
+# Builded binaries
+/bin
