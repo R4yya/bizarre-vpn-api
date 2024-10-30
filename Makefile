@@ -11,7 +11,7 @@ BOT_SRC = cmd/bot/main.go
 deps:
 	go mod download
 
-# Запустить API локально
+# Launch the API locally
 .PHONY: run-api
 run-api:
 	go run $(API_SRC)
