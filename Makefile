@@ -57,13 +57,12 @@ setup: deps swagger build
 
 .PHONY: help
 help:
- @echo "Available targets:"
- @echo "  deps         - Install dependencies"
- @echo "  run-api      - Launch API locally"
- @echo "  run-bot      - Launch bot locally"
- @echo "  swagger      - Generate Swagger documentation"
- @echo "  build        - Build API and bot for production"
- @echo "  start        - Launch the collected API and bot binaries"
- @echo "  clean        - Clear the collected files"
- @echo "  setup        - Install everything from scratch"
- 
+	@echo "Available targets:"
+	@echo "  deps         - Install dependencies"
+	@echo "  run-api      - Launch API locally"
+	@echo "  run-bot      - Launch bot locally"
+	@echo "  swagger      - Generate Swagger documentation"
+	@echo "  build        - Build API and bot for production"
+	@echo "  start        - Launch the collected API and bot binaries"
+	@echo "  clean        - Clear the collected files"
+	@echo "  setup        - Install everything from scratch"
