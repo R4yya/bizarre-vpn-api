@@ -1,0 +1,14 @@
+[Unit]
+Description=Example Service
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/myapp
+ExecStart=/opt/myapp/bin
+Restart=on-failure
+EnvironmentFile=/opt/myapp/.env
+
+[Install]
+WantedBy=multi-user.target
