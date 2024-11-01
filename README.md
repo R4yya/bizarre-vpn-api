@@ -1,6 +1,6 @@
 # BizarreVPN API
 
-This project is a template Go-based backend API for Telegram bot and Mini App.
+This project is a template Go-based backend API for Telegram bot and Mini App based VPN service.
 
 
 ## Setup
@@ -8,7 +8,7 @@ This project is a template Go-based backend API for Telegram bot and Mini App.
 1. Clone the repository:
 
     ```shell
-    git clone https://github.com/yourusername/bizarre-vpn-api.git
+    git clone https://github.com/R4yya/bizarre-vpn-api.git
     cd bizarre-vpn-api
     ```
 
