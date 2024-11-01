@@ -23,6 +23,16 @@ go.work.sum
 
 # env file
 .env
+example/example.env
+
+# env template
+!example/example.env
+
+# Nginx conf
+!example/example.conf
+
+# Systemd service
+!example/example.service
 
 # JetBrains Goland IDE folder
 .idea
@@ -36,3 +46,6 @@ go.work.sum
 # Database
 /data
 *.db
+
+# Builded binaries
+/bin
