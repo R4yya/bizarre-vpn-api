@@ -16,7 +16,7 @@ import (
 // @title BizarreVPN API
 // @version 0.0.1
 // @description API for BizarreVPN project.
-// @host localhost:8080
+// @host 127.0.0.1:5050
 // @BasePath /
 func main() {
 	cfg := config.MustLoadConfig()
