@@ -16,7 +16,7 @@ type CustomRouter struct {
 func (cr *CustomRouter) AddGroup(relativePath string, groupHandler func(customRouter *CustomRouter)) {
 	if relativePath[0] != '/' {
 		panic(fmt.Sprintf(
-			"u need provide correctly paths, basePath: %v, currentPath: %v",
+			"you need to provide correctly paths, basePath: %v, currentPath: %v",
 			cr.routerGroup.BasePath(),
 			relativePath,
 		))
