@@ -1,10 +1,9 @@
 # Environment variables
-APP_NAME_API = api
-APP_NAME_BOT = bot
+APP_NAME = api
 BUILD_DIR = bin
 SWAGGER_DIR = ./docs
 API_SRC = cmd/api/main.go
-BOT_SRC = cmd/bot/main.go
+CONFIG_FILE ?= config/local.yaml
 
 # Install dependencies
 .PHONY: deps
@@ -12,30 +11,24 @@ deps:
 	go mod download
 
 # Launch the API locally
-.PHONY: run-api
+.PHONY: run
 run-api:
-	make swagger
-	go run $(API_SRC) --config="config/local.yaml"
+	go run $(API_SRC) --config=$(CONFIG_FILE)
 
 # Generate Swagger documentation
 .PHONY: swagger
 swagger:
 	swag init --parseDependency --dir ./cmd/api,./internal/api/handlers --output $(SWAGGER_DIR)
 
-# Build API and bot for production
+# Build API for production
 .PHONY: build
-build: build-api build-bot
-
-build-api:
+build:
 	go build -ldflags "-s -w" -o $(BUILD_DIR)/$(APP_NAME_API) $(API_SRC)
 
-
-# Launch the collected API and bot binaries
+# Launch the collected API binary
 .PHONY: start
-start: start-api start-bot
-
-start-api:
-	$(BUILD_DIR)/$(APP_NAME_API)
+start:
+	$(BUILD_DIR)/$(APP_NAME_API) --config=$(CONFIG_FILE)
 
 # Clear the collected files
 .PHONY: clean
@@ -50,10 +43,9 @@ setup: deps swagger build
 help:
 	@echo "Available targets:"
 	@echo "  deps         - Install dependencies"
-	@echo "  run-api      - Launch API locally"
-	@echo "  run-bot      - Launch bot locally"
+	@echo "  run      - Launch API locally"
 	@echo "  swagger      - Generate Swagger documentation"
-	@echo "  build        - Build API and bot for production"
-	@echo "  start        - Launch the collected API and bot binaries"
+	@echo "  build        - Build API for production"
+	@echo "  start        - Launch the collected API binary"
 	@echo "  clean        - Clear the collected files"
 	@echo "  setup        - Install everything from scratch"
