@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	// _ "bizarre-vpn-api/docs"
+	_ "bizarre-vpn-api/docs"
 	"bizarre-vpn-api/internal/api/routes"
 	botInternal "bizarre-vpn-api/internal/bot"
 	"bizarre-vpn-api/internal/config"
@@ -25,6 +25,7 @@ func main() {
 
 	log.Info("starting application",
 		slog.String("env", cfg.Env),
+		slog.String("host", cfg.Env),
 		slog.Int("port", cfg.HttpServer.Port),
 	)
 
@@ -45,17 +46,17 @@ func main() {
 	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg.WebAppUrl)
 
 	go bot.Start()
-	log.Info("tg bot successfully started")
+	log.Info("TG bot successfully started")
 
 	r := routes.SetupRouter(log)
 
-	log.Info("API starting")
+	log.Info("API successfully started")
 
-	serverAddress := "localhost:" + strconv.Itoa(cfg.HttpServer.Port)
+	serverAddress := cfg.HttpServer.Host + ":" + strconv.Itoa(cfg.HttpServer.Port)
 
-	log.Debug("serverAddress logging", slog.String("serverAddress", serverAddress))
+	log.Debug("server address", slog.String("host", cfg.HttpServer.Host), slog.Int("port", cfg.HttpServer.Port))
 
-	if err := r.Run(serverAddress); err != nil {
+	if err = r.Run(serverAddress); err != nil {
 		log.Error("server listening error", sl.Err(err))
 		return
 	}
