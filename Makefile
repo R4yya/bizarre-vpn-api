@@ -14,12 +14,8 @@ deps:
 # Launch the API locally
 .PHONY: run-api
 run-api:
-	go run $(API_SRC)
-
-# Launch the bot locally
-.PHONY: run-bot
-run-bot:
-	go run $(BOT_SRC)
+	make swagger
+	go run $(API_SRC) --config="config/local.yaml"
 
 # Generate Swagger documentation
 .PHONY: swagger
@@ -33,8 +29,6 @@ build: build-api build-bot
 build-api:
 	go build -ldflags "-s -w" -o $(BUILD_DIR)/$(APP_NAME_API) $(API_SRC)
 
-build-bot:
-	go build -ldflags "-s -w" -o $(BUILD_DIR)/$(APP_NAME_BOT) $(BOT_SRC)
 
 # Launch the collected API and bot binaries
 .PHONY: start
@@ -42,9 +36,6 @@ start: start-api start-bot
 
 start-api:
 	$(BUILD_DIR)/$(APP_NAME_API)
-
-start-bot:
-	$(BUILD_DIR)/$(APP_NAME_BOT)
 
 # Clear the collected files
 .PHONY: clean

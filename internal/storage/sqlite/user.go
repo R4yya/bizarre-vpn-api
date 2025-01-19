@@ -1,21 +1,25 @@
-package repositories
+package sqlite
 
 import (
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
-	"bizarre-vpn-api/pkg/custom_errors"
 	"database/sql"
 	"errors"
 	"fmt"
+
+	"bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/storage/models"
 )
 
+type User struct {
+	db Database
+}
+
 // CreateUser adds a new user to the database
-func CreateUser(user *models.User) (int64, error) {
+func (u *User) CreateUser(user *models.User) (int64, error) {
 	query := `
     INSERT INTO users (telegram_id, username, language_code, is_bot)
     VALUES (:telegram_id, :username, :language_code, :is_bot)
     `
-	result, err := storage.GetDB().NamedExec(query, user)
+	result, err := u.db.NamedExec(query, user)
 	if err != nil {
 		return 0, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -29,14 +33,14 @@ func CreateUser(user *models.User) (int64, error) {
 }
 
 // GetUserByTelegramID gets the user by Telegram ID
-func GetUserByTelegramID(telegramID int64) (*models.User, error) {
+func (u *User) GetUserByTelegramID(telegramID int64) (*models.User, error) {
 	var user models.User
 
 	query := "SELECT * FROM users WHERE telegram_id = ?"
-	err := storage.GetDB().Get(&user, query, telegramID)
+	err := u.db.Get(&user, query, telegramID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, custom_errors.ErrUserNotFound
+			return nil, storage.ErrUserNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}

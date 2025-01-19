@@ -1,33 +1,30 @@
 package routes
 
 import (
-	"bizarre-vpn-api/internal/api/middleware"
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"bizarre-vpn-api/internal/api/middleware"
 )
 
-const swaggerPath = "/docs"
+func SetupRouter(log *slog.Logger) *gin.Engine {
+	customRouter := SetupCustomRouter(log)
 
-func SetupRouter(swaggerPath string) *gin.Engine {
-	router := gin.Default()
-
-	router.NoMethod(func(c *gin.Context) {
+	customRouter._router.NoMethod(func(c *gin.Context) {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
 			"message": "method not allowed on this endpoint",
 		})
 	})
 
 	corsMiddleware := middleware.CORS()
-	router.Use(corsMiddleware)
+	customRouter._router.Use(corsMiddleware)
 
-	RegisterPingRoute(router)
-	RegisterUserRoutes(router)
-	RegisterSubscriptionPlanRoutes(router)
+	customRouter.AddGroup("/ping", PingRoute)
+	//customRouter.AddGroup("/users", UserRoutes)
+	customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
+	customRouter.AddGroup("/docs", DocsRoutes)
 
-	router.GET(swaggerPath+"/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	return router
+	return customRouter._router
 }

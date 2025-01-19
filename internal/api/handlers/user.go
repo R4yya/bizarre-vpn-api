@@ -1,14 +1,21 @@
 package handlers
 
 import (
-	"bizarre-vpn-api/internal/storage/models"
-	"bizarre-vpn-api/internal/storage/services"
-	"bizarre-vpn-api/pkg/custom_errors"
-	"bizarre-vpn-api/pkg/logger"
 	"errors"
-	"github.com/gin-gonic/gin"
+	"log/slog"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/storage/models"
 )
+
+type UserHandler struct {
+	Log *slog.Logger
+}
 
 type UserAuthorizationRequest struct {
 	TelegramID   int64  `json:"telegramID" binding:"required"`
@@ -30,7 +37,7 @@ type UserAuthorizationRequest struct {
 // @Failure 409 {object} MessageResponse "User with this Telegram ID already exists"
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /user/auth [post]
-func AuthorizeUserHandler(c *gin.Context) {
+func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
 	var req UserAuthorizationRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -53,12 +60,12 @@ func AuthorizeUserHandler(c *gin.Context) {
 
 	userID, err := services.RegisterUser(user)
 	if err != nil {
-		if errors.Is(err, custom_errors.ErrUserAlreadyExists) {
-			logger.Error(err)
+		if errors.Is(err, storage.ErrUserAlreadyExists) {
+			h.Log.Info("user not found", sl.Err(err))
 			c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
 			return
 		}
-		logger.Error(err)
+		h.Log.Error("registration user error", sl.Err(err))
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
