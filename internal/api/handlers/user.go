@@ -14,7 +14,8 @@ import (
 )
 
 type UserHandler struct {
-	Log *slog.Logger
+	Log         *slog.Logger
+	userService *services.UserService
 }
 
 type UserAuthorizationRequest struct {
@@ -45,7 +46,7 @@ func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
 		return
 	}
 
-	existingUser, err := services.GetUser(req.TelegramID)
+	existingUser, err := h.userService.GetUser(req.TelegramID)
 	if err == nil && existingUser != nil {
 		c.JSON(http.StatusOK, existingUser)
 		return
@@ -58,7 +59,7 @@ func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
 		IsBot:        req.IsBot,
 	}
 
-	userID, err := services.RegisterUser(user)
+	userID, err := h.userService.RegisterUser(user)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserAlreadyExists) {
 			h.Log.Info("user not found", sl.Err(err))
