@@ -1,12 +1,13 @@
 package bot
 
 import (
-	"bizarre-vpn-api/internal/lib/logger/sl"
 	"fmt"
 	"log/slog"
 	"time"
 
 	tele "gopkg.in/telebot.v4"
+
+	"bizarre-vpn-api/internal/lib/logger/sl"
 )
 
 func MustInitBot(log *slog.Logger, botToken string, webAppUrl string) *tele.Bot {
