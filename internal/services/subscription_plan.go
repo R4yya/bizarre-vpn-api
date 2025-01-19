@@ -1,13 +1,14 @@
 package services
 
 import (
-	intStorage "bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
 	"errors"
 	"fmt"
+
+	intStorage "bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/storage/models"
 )
 
-type Storage interface {
+type SubscriptionPlanStorage interface {
 	GetAllSubscriptionPlans() ([]models.SubscriptionPlan, error)
 	GetSubscriptionPlanByID(id int64) (*models.SubscriptionPlan, error)
 	CreateSubscriptionPlan(plan *models.SubscriptionPlan) (int64, error)
@@ -16,7 +17,7 @@ type Storage interface {
 }
 
 type SubscriptionPlanService struct {
-	storage Storage
+	storage SubscriptionPlanStorage
 }
 
 // GetAllPlans returns all available subscription plans
