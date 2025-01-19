@@ -37,7 +37,7 @@ type UserAuthorizationRequest struct {
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
 // @Failure 409 {object} MessageResponse "User with this Telegram ID already exists"
 // @Failure 500 {object} MessageResponse "Internal server error"
-// @Router /user/auth [post]
+// @Router /users/auth [post]
 func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
 	const op = "handlers.user.AuthorizeUserHandler"
 
