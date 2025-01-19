@@ -22,7 +22,7 @@ func SetupRouter(log *slog.Logger) *gin.Engine {
 	customRouter._router.Use(corsMiddleware)
 
 	customRouter.AddGroup("/ping", PingRoute)
-	//customRouter.AddGroup("/users", UserRoutes)
+	customRouter.AddGroup("/users", UserRoutes)
 	customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
 	customRouter.AddGroup("/docs", DocsRoutes)
 
