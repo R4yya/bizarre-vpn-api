@@ -39,6 +39,12 @@ type UserAuthorizationRequest struct {
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /user/auth [post]
 func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
+	const op = "handlers.user.AuthorizeUserHandler"
+
+	log := h.Log.With(
+		slog.String("op", op),
+	)
+
 	var req UserAuthorizationRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -62,11 +68,11 @@ func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
 	userID, err := h.userService.RegisterUser(user)
 	if err != nil {
 		if errors.Is(err, storage.ErrUserAlreadyExists) {
-			h.Log.Info("user not found", sl.Err(err))
+			log.Info("user not found", sl.Err(err))
 			c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
 			return
 		}
-		h.Log.Error("registration user error", sl.Err(err))
+		log.Error("registration user error", sl.Err(err))
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}
