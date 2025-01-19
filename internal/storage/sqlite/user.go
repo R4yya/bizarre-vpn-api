@@ -13,6 +13,22 @@ type User struct {
 	db Database
 }
 
+// GetUserByTelegramID gets the user by Telegram ID
+func (u *User) GetUserByTelegramID(telegramID int64) (*models.User, error) {
+	var user models.User
+
+	query := "SELECT * FROM users WHERE telegram_id = ?"
+	err := u.db.Get(&user, query, telegramID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user, nil
+}
+
 // CreateUser adds a new user to the database
 func (u *User) CreateUser(user *models.User) (int64, error) {
 	query := `
@@ -30,20 +46,4 @@ func (u *User) CreateUser(user *models.User) (int64, error) {
 	}
 
 	return userID, nil
-}
-
-// GetUserByTelegramID gets the user by Telegram ID
-func (u *User) GetUserByTelegramID(telegramID int64) (*models.User, error) {
-	var user models.User
-
-	query := "SELECT * FROM users WHERE telegram_id = ?"
-	err := u.db.Get(&user, query, telegramID)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrUserNotFound
-		}
-		return nil, fmt.Errorf("failed to get user: %w", err)
-	}
-
-	return &user, nil
 }
