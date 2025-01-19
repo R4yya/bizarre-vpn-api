@@ -1,14 +1,18 @@
 package main
 
 import (
-	_ "bizarre-vpn-api/docs"
-	"bizarre-vpn-api/internal/api/routes"
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/pkg/logger"
 	"fmt"
-	"github.com/joho/godotenv"
-	"log"
+	"log/slog"
 	"os"
+
+	"github.com/joho/godotenv"
+
+	// _ "bizarre-vpn-api/docs"
+	"bizarre-vpn-api/internal/api/routes"
+	"bizarre-vpn-api/internal/config"
+	slogWrapper "bizarre-vpn-api/internal/lib/logger"
+	"bizarre-vpn-api/internal/lib/logger/sl"
+	cStorage "bizarre-vpn-api/internal/storage"
 )
 
 // @title BizarreVPN API
@@ -17,50 +21,64 @@ import (
 // @host localhost:8080
 // @BasePath /
 func main() {
-	err := logger.Init("api")
-	if err != nil {
-		log.Fatalf("Error initiating logger: %v", err)
-	}
-	defer logger.Close()
+	log := slogWrapper.SetupLogger(config.EnvLocal)
 
-	if err = godotenv.Load(); err != nil {
-		logger.Error(err)
+	log.Debug("debug msg")
+	log.Info("info msg")
+	log.Warn("warning msg")
+	log.Error("warning msg")
+
+	if err := godotenv.Load(); err != nil {
+		log.Error("config initialization error", sl.Err(err), slog.String("test", "test"))
 		return
 	}
+
+	portString := os.Getenv("API_PORT")
+
+	log.Info("starting application",
+		slog.String("env", "env example"),
+		slog.String("port", portString),
+	)
 
 	dbPath := os.Getenv("DATABASE_PATH")
 	if dbPath == "" {
-		err = fmt.Errorf("DATABASE_PATH not found")
-		logger.Error(err)
+		log.Error("DATABASE_PATH not found")
 		return
 	}
 
-	if err = storage.InitDB(dbPath); err != nil {
-		logger.Error(err)
+	log.Info("database initialization")
+
+	storage, err := cStorage.New(dbPath)
+
+	if err != nil {
+		log.Error("database initialization error", sl.Err(err))
 		return
 	}
+
+	log.Info(fmt.Sprintf("Connected to SQLite database at %s", dbPath))
+
 	defer storage.CloseDB()
+
+	log.Info("database initialized successful")
 
 	apiPort := os.Getenv("API_PORT")
 	if apiPort == "" {
-		err = fmt.Errorf("API_PORT not found")
-		logger.Error(err)
+		log.Error("API_PORT not found")
 		return
 	}
 
 	swaggerPath := os.Getenv("SWAGGER_PATH")
 	if swaggerPath == "" {
-		err = fmt.Errorf("SWAGGER_PATH not found")
-		logger.Error(err)
+		log.Error("SWAGGER_PATH not found")
 		return
 	}
 
 	r := routes.SetupRouter(swaggerPath)
 
-	logger.Info("API successfully started")
+	log.Info("API successfully started")
 
-	if err = r.Run(apiPort); err != nil {
-		logger.Error(err)
+	if err := r.Run(apiPort); err != nil {
+		log.Error("server listening error", sl.Err(err))
 		return
 	}
 }
