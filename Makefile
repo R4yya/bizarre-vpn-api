@@ -12,7 +12,7 @@ deps:
 
 # Launch the API locally
 .PHONY: run
-run-api:
+run:
 	go run $(API_SRC) --config=$(CONFIG_FILE)
 
 # Generate Swagger documentation
