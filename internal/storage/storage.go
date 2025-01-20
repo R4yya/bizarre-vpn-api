@@ -1,52 +1,20 @@
 package storage
 
 import (
-	"fmt"
-
-	"github.com/jmoiron/sqlx"
-	_ "modernc.org/sqlite"
+	"errors"
 )
 
-type Storage struct {
-	db     *sqlx.DB
-	dbPath string
-}
+// User errors
+var (
+	// ErrUserNotFound occurs if the user is not found in the database
+	ErrUserNotFound = errors.New("user not found")
 
-func New(dbPath string) (*Storage, error) {
-	const op = "internal.storage.New"
+	// ErrUserAlreadyExists occurs if a user with the specified Telegram ID already exists
+	ErrUserAlreadyExists = errors.New("user with this Telegram ID already exists")
+)
 
-	db, err := initDB(dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("%v: %w", op, err)
-	}
-
-	storage := &Storage{
-		db:     db,
-		dbPath: dbPath,
-	}
-
-	return storage, nil
-}
-
-// InitDB initializes a connection to a database
-func initDB(dbPath string) (*sqlx.DB, error) {
-	db, err := sqlx.Connect("sqlite", dbPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to connect to database: %w", err)
-	}
-
-	return db, nil
-}
-
-// CloseDB closes the connection to the database
-func (s *Storage) CloseDB() error {
-	if s.db == nil {
-		return nil
-	}
-
-	if err := s.db.Close(); err != nil {
-		return fmt.Errorf("failed to close database: %w", err)
-	}
-
-	return nil
-}
+// Subscription plans errors
+var (
+	// ErrPlanNotFound occurs if the plan is not found in the database
+	ErrPlanNotFound = errors.New("subscription plan not found")
+)

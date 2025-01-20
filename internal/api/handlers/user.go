@@ -1,14 +1,22 @@
 package handlers
 
 import (
-	"bizarre-vpn-api/internal/storage/models"
-	"bizarre-vpn-api/internal/storage/services"
-	"bizarre-vpn-api/pkg/custom_errors"
-	"bizarre-vpn-api/pkg/logger"
 	"errors"
-	"github.com/gin-gonic/gin"
+	"log/slog"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+
+	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/storage/models"
 )
+
+type UserHandler struct {
+	Log         *slog.Logger
+	userService *services.UserService
+}
 
 type UserAuthorizationRequest struct {
 	TelegramID   int64  `json:"telegramID" binding:"required"`
@@ -29,8 +37,14 @@ type UserAuthorizationRequest struct {
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
 // @Failure 409 {object} MessageResponse "User with this Telegram ID already exists"
 // @Failure 500 {object} MessageResponse "Internal server error"
-// @Router /user/auth [post]
-func AuthorizeUserHandler(c *gin.Context) {
+// @Router /users/auth [post]
+func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
+	const op = "handlers.user.AuthorizeUserHandler"
+
+	log := h.Log.With(
+		slog.String("op", op),
+	)
+
 	var req UserAuthorizationRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -38,7 +52,7 @@ func AuthorizeUserHandler(c *gin.Context) {
 		return
 	}
 
-	existingUser, err := services.GetUser(req.TelegramID)
+	existingUser, err := h.userService.GetUser(req.TelegramID)
 	if err == nil && existingUser != nil {
 		c.JSON(http.StatusOK, existingUser)
 		return
@@ -51,14 +65,14 @@ func AuthorizeUserHandler(c *gin.Context) {
 		IsBot:        req.IsBot,
 	}
 
-	userID, err := services.RegisterUser(user)
+	userID, err := h.userService.RegisterUser(user)
 	if err != nil {
-		if errors.Is(err, custom_errors.ErrUserAlreadyExists) {
-			logger.Error(err)
+		if errors.Is(err, storage.ErrUserAlreadyExists) {
+			log.Info("user not found", sl.Err(err))
 			c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
 			return
 		}
-		logger.Error(err)
+		log.Error("registration user error", sl.Err(err))
 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
 		return
 	}

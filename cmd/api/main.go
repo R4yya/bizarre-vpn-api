@@ -1,83 +1,62 @@
 package main
 
 import (
-	"fmt"
 	"log/slog"
-	"os"
+	"strconv"
 
-	"github.com/joho/godotenv"
-
-	// _ "bizarre-vpn-api/docs"
+	_ "bizarre-vpn-api/docs"
 	"bizarre-vpn-api/internal/api/routes"
+	botInternal "bizarre-vpn-api/internal/bot"
 	"bizarre-vpn-api/internal/config"
 	slogWrapper "bizarre-vpn-api/internal/lib/logger"
 	"bizarre-vpn-api/internal/lib/logger/sl"
-	cStorage "bizarre-vpn-api/internal/storage"
+	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
 // @title BizarreVPN API
 // @version 0.0.1
 // @description API for BizarreVPN project.
-// @host localhost:8080
+// @host 127.0.0.1:5050
 // @BasePath /
 func main() {
-	log := slogWrapper.SetupLogger(config.EnvLocal)
+	cfg := config.MustLoadConfig()
 
-	log.Debug("debug msg")
-	log.Info("info msg")
-	log.Warn("warning msg")
-	log.Error("warning msg")
-
-	if err := godotenv.Load(); err != nil {
-		log.Error("config initialization error", sl.Err(err), slog.String("test", "test"))
-		return
-	}
-
-	portString := os.Getenv("API_PORT")
+	log := slogWrapper.SetupLogger(cfg.Env)
 
 	log.Info("starting application",
-		slog.String("env", "env example"),
-		slog.String("port", portString),
+		slog.String("env", cfg.Env),
+		slog.String("host", cfg.Env),
+		slog.Int("port", cfg.HttpServer.Port),
 	)
-
-	dbPath := os.Getenv("DATABASE_PATH")
-	if dbPath == "" {
-		log.Error("DATABASE_PATH not found")
-		return
-	}
 
 	log.Info("database initialization")
 
-	storage, err := cStorage.New(dbPath)
+	storage, err := cStorage.Init(cfg.StoragePath, log)
 
 	if err != nil {
 		log.Error("database initialization error", sl.Err(err))
 		return
 	}
 
-	log.Info(fmt.Sprintf("Connected to SQLite database at %s", dbPath))
-
+	//TODO: need to relocate func call to graceful shutdown
 	defer storage.CloseDB()
 
 	log.Info("database initialized successful")
 
-	apiPort := os.Getenv("API_PORT")
-	if apiPort == "" {
-		log.Error("API_PORT not found")
-		return
-	}
+	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg.WebAppUrl)
 
-	swaggerPath := os.Getenv("SWAGGER_PATH")
-	if swaggerPath == "" {
-		log.Error("SWAGGER_PATH not found")
-		return
-	}
+	go bot.Start()
+	log.Info("TG bot successfully started")
 
-	r := routes.SetupRouter(swaggerPath)
+	r := routes.SetupRouter(log)
 
 	log.Info("API successfully started")
 
-	if err := r.Run(apiPort); err != nil {
+	serverAddress := cfg.HttpServer.Host + ":" + strconv.Itoa(cfg.HttpServer.Port)
+
+	log.Debug("server address", slog.String("host", cfg.HttpServer.Host), slog.Int("port", cfg.HttpServer.Port))
+
+	if err = r.Run(serverAddress); err != nil {
 		log.Error("server listening error", sl.Err(err))
 		return
 	}

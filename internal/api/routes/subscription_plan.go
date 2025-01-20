@@ -2,15 +2,17 @@ package routes
 
 import (
 	"bizarre-vpn-api/internal/api/handlers"
-	"github.com/gin-gonic/gin"
 )
 
-func RegisterSubscriptionPlanRoutes(router *gin.Engine) {
-	subscriptionGroup := router.Group("/plans")
+func SubscriptionPlanRoutes(customRouter *CustomRouter) {
 
-	subscriptionGroup.POST("/", handlers.CreatePlanHandler)
-	subscriptionGroup.GET("/", handlers.GetAllPlansHandler)
-	subscriptionGroup.GET("/:id", handlers.GetPlanHandler)
-	subscriptionGroup.PUT("/:id", handlers.UpdatePlanHandler)
-	subscriptionGroup.DELETE("/:id", handlers.DeletePlanHandler)
+	subscriptionPlanHandler := handlers.SubscriptionPlanHandler{
+		Log: customRouter.log,
+	}
+
+	customRouter.routerGroup.GET("/", subscriptionPlanHandler.GetAllPlansHandler)
+	customRouter.routerGroup.GET("/:id", subscriptionPlanHandler.GetPlanHandler)
+	customRouter.routerGroup.POST("/", subscriptionPlanHandler.CreatePlanHandler)
+	customRouter.routerGroup.PUT("/:id", subscriptionPlanHandler.UpdatePlanHandler)
+	customRouter.routerGroup.DELETE("/:id", subscriptionPlanHandler.DeletePlanHandler)
 }

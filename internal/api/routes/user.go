@@ -2,11 +2,10 @@ package routes
 
 import (
 	"bizarre-vpn-api/internal/api/handlers"
-	"github.com/gin-gonic/gin"
 )
 
-func RegisterUserRoutes(router *gin.Engine) {
-	userGroup := router.Group("/user")
+func UserRoutes(customRouter *CustomRouter) {
+	userHandler := handlers.UserHandler{Log: customRouter.log}
 
-	userGroup.POST("/auth", handlers.AuthorizeUserHandler)
+	customRouter.routerGroup.POST("/auth", userHandler.AuthorizeUserHandler)
 }
