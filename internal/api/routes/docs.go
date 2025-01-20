@@ -6,5 +6,9 @@ import (
 )
 
 func DocsRoutes(customRouter *CustomRouter) {
-	customRouter.routerGroup.GET("/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	customRouter._router.Static("/docs", "./docs")
+	customRouter._router.GET("/swagger/*any", ginSwagger.WrapHandler(
+		swaggerFiles.Handler,
+		ginSwagger.URL("/docs/swagger.json"),
+	))
 }

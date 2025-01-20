@@ -13,13 +13,15 @@ deps:
 # Launch the API locally
 .PHONY: run
 run:
+	make swagger
 	go run $(API_SRC) --config=$(CONFIG_FILE)
 
 # Generate Swagger documentation
 .PHONY: swagger
 swagger:
 	swag init --parseDependency --dir ./cmd/api,./internal/api/handlers --output $(SWAGGER_DIR)
-
+	rm ./docs/docs.go
+	rm ./docs/swagger.yaml
 # Build API for production
 .PHONY: build
 build:
