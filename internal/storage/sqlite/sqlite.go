@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"bizarre-vpn-api/internal/lib/logger/sl"
 	"fmt"
 	"log/slog"
 
