@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"bizarre-vpn-api/internal/lib/logger/sl"
 	"fmt"
 	"log/slog"
 
@@ -11,26 +12,45 @@ import (
 type Database = *sqlx.DB
 
 type Storage struct {
-	db               Database
-	subscriptionPlan SubscriptionPlan
+	db                      Database
+	SubscriptionPlanStorage *SubscriptionPlanStorage
+	UserStorage             *UserStorage
+	LnkUserProviderStorage  *LnkUserProviderStorage
 }
 
-func Init(dbPath string, log *slog.Logger) (*Storage, error) {
+func MustInit(dbPath string, log *slog.Logger) *Storage {
 	const op = "storage.sqlite.New"
 
 	db, err := sqlx.Connect("sqlite", dbPath)
 	if err != nil {
-		return nil, fmt.Errorf("%v: failed to connect to database: %w", op, err)
+		cErr := fmt.Errorf("%v: failed to connect to database: %w", op, err)
+
+		log.Error("database initialization error", sl.Err(cErr))
+		panic(cErr)
 	}
 
 	log.Info(fmt.Sprintf("Connected to SQLite database at %s", dbPath))
 
+	userStorage := &UserStorage{db}
+	userStorage.MustInit()
+
+	lnkUserProviderStorage := &LnkUserProviderStorage{
+		db,
+		userStorage,
+	}
+	lnkUserProviderStorage.MustInit()
+
+	subscriptionPlanStorage := &SubscriptionPlanStorage{db}
+	subscriptionPlanStorage.MustInit()
+
 	storage := &Storage{
-		db:               db,
-		subscriptionPlan: SubscriptionPlan{db: db},
+		db:                      db,
+		SubscriptionPlanStorage: subscriptionPlanStorage,
+		UserStorage:             userStorage,
+		LnkUserProviderStorage:  lnkUserProviderStorage,
 	}
 
-	return storage, nil
+	return storage
 }
 
 // CloseDB closes the connection to the database

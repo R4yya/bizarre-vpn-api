@@ -77,6 +77,7 @@ func (h *SubscriptionPlanHandler) GetPlanHandler(c *gin.Context) {
 
 	idStr := c.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
+
 	if err != nil {
 		log.Error("parsing uri param id error", sl.Err(err))
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: "invalid plan ID"})

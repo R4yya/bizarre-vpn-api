@@ -2,7 +2,11 @@ package storage
 
 import (
 	"errors"
+
+	"github.com/jmoiron/sqlx"
 )
+
+type Executor = sqlx.Ext
 
 // User errors
 var (
