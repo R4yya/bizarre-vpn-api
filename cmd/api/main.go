@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"strconv"
 
-	_ "bizarre-vpn-api/docs"
 	"bizarre-vpn-api/internal/api/routes"
 	botInternal "bizarre-vpn-api/internal/bot"
 	"bizarre-vpn-api/internal/config"
