@@ -1,13 +1,13 @@
 package bot
 
 import (
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services"
 	"fmt"
 	"log/slog"
 
 	tele "gopkg.in/telebot.v4"
 
+	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/services"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 

@@ -1,12 +1,13 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/lib/logger/sl"
 	"fmt"
 	"log/slog"
 
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
+
+	"bizarre-vpn-api/internal/lib/logger/sl"
 )
 
 type Database = *sqlx.DB
