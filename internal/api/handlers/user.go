@@ -2,13 +2,18 @@ package handlers
 
 import (
 	"log/slog"
+	"net/http"
 
+	"bizarre-vpn-api/internal/api/helpers"
+	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserHandler struct {
 	Log         *slog.Logger
-	userService *services.UserService
+	UserStorage services.UserStorage
 }
 
 type UserAuthorizationRequest struct {
@@ -16,6 +21,45 @@ type UserAuthorizationRequest struct {
 	Username     string `json:"username"`
 	LanguageCode string `json:"languageCode"`
 	IsBot        bool   `json:"isBot"`
+}
+
+// GetUserInfoHandler processes the user authorization request
+// @Summary Get User Info
+// @Security token
+// @Description Getting base user data by token
+// @Tags Users
+// @Produce json
+// @Success 200 {object} models.BaseUser "User Data"
+// @Failure 401 {object} MessageResponse "Unauthorized"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /users [get]
+func (h *UserHandler) GetUserInfoHandler(c *gin.Context) {
+	const op = "handlers.user.GetUserInfo"
+
+	log := h.Log.With(
+		slog.String("op", op),
+	)
+
+	tokenInfo, err := helpers.GetTokenInfo(c)
+
+	if err != nil {
+		log.Error("getting token info error", sl.Err(err))
+
+		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+		return
+	}
+
+	userService := services.NewUserService(log, h.UserStorage)
+
+	user, err := userService.GetUserById(tokenInfo.UserID)
+
+	if err != nil {
+		log.Error("getting user error", sl.Err(err))
+
+		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 // AuthorizeUserHandler processes the user authorization request

@@ -43,6 +43,8 @@ func NewAuthService(
 
 func (au *AuthService) getAuthorizeTokens(
 	user *models.BaseUser,
+	accessSecretKey []byte,
+	refreshSecretKey []byte,
 ) (accessToken string, refreshToken string, Err error) {
 	op := "auth.Authorize"
 
@@ -50,7 +52,12 @@ func (au *AuthService) getAuthorizeTokens(
 
 	log.Debug("start generate tokens")
 
-	accessToken, refreshToken, err := jwt.GenerateAuthTokens(user.ID, user.Role)
+	accessToken, refreshToken, err := jwt.GenerateAuthTokens(
+		user.ID,
+		user.Role,
+		accessSecretKey,
+		refreshSecretKey,
+	)
 
 	if err != nil {
 		log.Debug("generate tokens error", sl.Err(err))
@@ -77,6 +84,8 @@ func (au *AuthService) authorizeByProvider(
 	providerType string,
 	externalUserId string,
 	username string,
+	accessSecretKey []byte,
+	refreshSecretKey []byte,
 ) (accessToken string, refreshToken string, Err error) {
 	op := "internal.services.userService.auth.authorizeByProvider"
 
@@ -124,14 +133,46 @@ func (au *AuthService) authorizeByProvider(
 
 	log.Debug("authorize logic")
 
-	return au.getAuthorizeTokens(user)
+	return au.getAuthorizeTokens(
+		user,
+		accessSecretKey,
+		refreshSecretKey,
+	)
 }
 
 func (au *AuthService) AuthorizeByTelegram(
 	telegramId int64,
 	username string,
+	accessSecretKey []byte,
+	refreshSecretKey []byte,
 ) (accessToken string, refreshToken string, Err error) {
 	preparedExternalId := strconv.Itoa(int(telegramId))
 
-	return au.authorizeByProvider(telegramProviderName, preparedExternalId, username)
+	return au.authorizeByProvider(
+		telegramProviderName,
+		preparedExternalId,
+		username,
+		accessSecretKey,
+		refreshSecretKey,
+	)
+}
+
+func (au *AuthService) GetRefreshedTokens(
+	user *models.BaseUser,
+	refreshToken string,
+	accessSecretKey []byte,
+	refreshSecretKey []byte,
+) (newAccessToken string, newRefreshToken string, Err error) {
+	op := "internal.services.auth.GetRefreshedTokens"
+	actualRefreshToken, err := au.userStorage.GetUserRefreshToken(user.ID)
+
+	if err != nil {
+		return "", "", fmt.Errorf("%v: error when getting user actual token: %w", op, err)
+	}
+
+	if actualRefreshToken != refreshToken {
+		return "", "", fmt.Errorf("%v: user actual refresh token is not equal to transferred refresh token", op)
+	}
+
+	return au.getAuthorizeTokens(user, accessSecretKey, refreshSecretKey)
 }

@@ -29,7 +29,7 @@ func (u *SubscriptionPlanStorage) MustInit() {
 	_, err := u.db.Exec(query)
 
 	if err != nil {
-		panic(fmt.Errorf("failed to init subscription_plans table: %v", err))
+		panic(fmt.Errorf("failed to init subscription_plans table: %w", err))
 	}
 }
 

@@ -28,7 +28,7 @@ func (s *LnkUserProviderStorage) MustInit() {
 	_, err := s.db.Exec(query)
 
 	if err != nil {
-		panic(fmt.Errorf("failed to init lnk_user_providers table: %v", err))
+		panic(fmt.Errorf("failed to init lnk_user_providers table: %w", err))
 	}
 }
 

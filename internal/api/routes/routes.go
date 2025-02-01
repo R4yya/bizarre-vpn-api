@@ -6,11 +6,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"bizarre-vpn-api/internal/api/middleware"
+	"bizarre-vpn-api/internal/api/middlewares"
+	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/storage/sqlite"
 )
 
-func SetupRouter(log *slog.Logger) *gin.Engine {
-	customRouter := SetupCustomRouter(log)
+func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage) *gin.Engine {
+	customRouter := SetupCustomRouter(log, cfg, storage)
 
 	customRouter._router.NoMethod(func(c *gin.Context) {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
@@ -18,12 +20,12 @@ func SetupRouter(log *slog.Logger) *gin.Engine {
 		})
 	})
 
-	corsMiddleware := middleware.CORS()
+	corsMiddleware := middlewares.CORS()
 	customRouter._router.Use(corsMiddleware)
 
 	customRouter.AddGroup("/ping", PingRoute)
 	customRouter.AddGroup("/users", UserRoutes)
-	customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
+	//customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
 	DocsRoutes(customRouter)
 
 	return customRouter._router

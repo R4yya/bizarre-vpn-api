@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/storage/sqlite"
 	"fmt"
 	"log/slog"
 
@@ -11,6 +13,8 @@ type CustomRouter struct {
 	_router     *gin.Engine
 	routerGroup *gin.RouterGroup
 	log         *slog.Logger
+	cfg         *config.Config
+	storage     *sqlite.Storage
 }
 
 func (cr *CustomRouter) AddGroup(relativePath string, groupHandler func(customRouter *CustomRouter)) {
@@ -28,17 +32,25 @@ func (cr *CustomRouter) AddGroup(relativePath string, groupHandler func(customRo
 		_router:     cr._router,
 		routerGroup: newGroup,
 		log:         cr.log,
+		cfg:         cr.cfg,
+		storage:     cr.storage,
 	}
 
 	groupHandler(newCustomRouter)
 }
 
-func SetupCustomRouter(log *slog.Logger) *CustomRouter {
+func SetupCustomRouter(
+	log *slog.Logger,
+	cfg *config.Config,
+	storage *sqlite.Storage,
+) *CustomRouter {
 	router := gin.Default()
 
 	return &CustomRouter{
 		_router:     router,
 		routerGroup: &router.RouterGroup,
 		log:         log,
+		cfg:         cfg,
+		storage:     storage,
 	}
 }

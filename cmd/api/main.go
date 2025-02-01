@@ -17,6 +17,10 @@ import (
 // @description API for BizarreVPN project.
 // @host 127.0.0.1:5050
 // @BasePath /
+// @securityDefinitions.apikey token
+// @in header
+// @name Authorization
+// @description Enter the token with the `Bearer ` prefix, e.g. "Bearer abcde12345".
 func main() {
 	cfg := config.MustLoadConfig()
 
@@ -37,12 +41,12 @@ func main() {
 
 	log.Info("database initialized successful")
 
-	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg.WebAppUrl, storage)
+	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg, storage)
 
 	go bot.Start()
 	log.Info("TG bot successfully started")
 
-	r := routes.SetupRouter(log)
+	r := routes.SetupRouter(log, cfg, storage)
 
 	log.Info("API successfully started")
 

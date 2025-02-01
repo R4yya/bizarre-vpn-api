@@ -24,7 +24,7 @@ type SubscriptionPlanService struct {
 func (s *SubscriptionPlanService) GetAllPlans() ([]models.SubscriptionPlan, error) {
 	plan, err := s.storage.GetAllSubscriptionPlans()
 	if err != nil {
-		return nil, fmt.Errorf("error getting all subscription plans: %v", err)
+		return nil, fmt.Errorf("error getting all subscription plans: %w", err)
 	}
 
 	return plan, nil
@@ -37,7 +37,7 @@ func (s *SubscriptionPlanService) GetPlan(id int64) (*models.SubscriptionPlan, e
 		if errors.Is(err, intStorage.ErrPlanNotFound) {
 			return nil, intStorage.ErrPlanNotFound
 		}
-		return nil, fmt.Errorf("error getting subscription plan by id: %v", err)
+		return nil, fmt.Errorf("error getting subscription plan by id: %w", err)
 	}
 
 	if plan == nil {
@@ -79,7 +79,7 @@ func (s *SubscriptionPlanService) UpdatePlan(plan *models.SubscriptionPlan) (*mo
 		if errors.Is(err, intStorage.ErrPlanNotFound) {
 			return nil, intStorage.ErrPlanNotFound
 		}
-		return nil, fmt.Errorf("error updating subscription plan: %v", err)
+		return nil, fmt.Errorf("error updating subscription plan: %w", err)
 	}
 
 	return plan, nil
@@ -92,7 +92,7 @@ func (s *SubscriptionPlanService) DeletePlan(id int64) error {
 		if errors.Is(err, intStorage.ErrPlanNotFound) {
 			return intStorage.ErrPlanNotFound
 		}
-		return fmt.Errorf("error deleting subscription plan by id: %v", err)
+		return fmt.Errorf("error deleting subscription plan by id: %w", err)
 	}
 
 	return nil
