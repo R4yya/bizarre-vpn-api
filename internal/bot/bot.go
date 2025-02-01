@@ -8,9 +8,10 @@ import (
 	tele "gopkg.in/telebot.v4"
 
 	"bizarre-vpn-api/internal/lib/logger/sl"
+	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
-func MustInitBot(log *slog.Logger, botToken string, webAppUrl string) *tele.Bot {
+func MustInitBot(log *slog.Logger, botToken string, webAppUrl string, storage *cStorage.Storage) *tele.Bot {
 	log.Info("tg bot starting")
 
 	botSettings := tele.Settings{
@@ -24,7 +25,7 @@ func MustInitBot(log *slog.Logger, botToken string, webAppUrl string) *tele.Bot 
 		panic(fmt.Errorf("tg bot error: %v", err.Error()))
 	}
 
-	registerHandlers(b, webAppUrl)
+	registerHandlers(b, webAppUrl, log, storage)
 
 	return b
 }

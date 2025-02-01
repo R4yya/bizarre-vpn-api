@@ -1,18 +1,14 @@
 package routes
 
-import (
-	"bizarre-vpn-api/internal/api/handlers"
-)
-
 func SubscriptionPlanRoutes(customRouter *CustomRouter) {
 
-	subscriptionPlanHandler := handlers.SubscriptionPlanHandler{
-		Log: customRouter.log,
-	}
+	// subscriptionPlanHandler := handlers.SubscriptionPlanHandler{
+	// 	Log: customRouter.log,
+	// }
 
-	customRouter.routerGroup.GET("/", subscriptionPlanHandler.GetAllPlansHandler)
-	customRouter.routerGroup.GET("/:id", subscriptionPlanHandler.GetPlanHandler)
-	customRouter.routerGroup.POST("/", subscriptionPlanHandler.CreatePlanHandler)
-	customRouter.routerGroup.PUT("/:id", subscriptionPlanHandler.UpdatePlanHandler)
-	customRouter.routerGroup.DELETE("/:id", subscriptionPlanHandler.DeletePlanHandler)
+	//customRouter.routerGroup.GET("/", subscriptionPlanHandler.GetAllPlansHandler)
+	//customRouter.routerGroup.GET("/:id", subscriptionPlanHandler.GetPlanHandler)
+	//customRouter.routerGroup.POST("/", subscriptionPlanHandler.CreatePlanHandler)
+	//customRouter.routerGroup.PUT("/:id", subscriptionPlanHandler.UpdatePlanHandler)
+	//customRouter.routerGroup.DELETE("/:id", subscriptionPlanHandler.DeletePlanHandler)
 }

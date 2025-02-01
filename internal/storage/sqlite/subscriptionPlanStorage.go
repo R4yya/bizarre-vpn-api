@@ -9,12 +9,32 @@ import (
 	"bizarre-vpn-api/internal/storage/models"
 )
 
-type SubscriptionPlan struct {
+type SubscriptionPlanStorage struct {
 	db Database
 }
 
+func (u *SubscriptionPlanStorage) MustInit() {
+	query := `CREATE TABLE IF NOT EXISTS subscription_plans(
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL
+		-- language_code TEXT NOT NULL
+		-- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    -- updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		-- role VARCHAR(255),
+		-- refresh_token TEXT(500)
+	);`
+
+	//CREATE INDEX IF NOT EXISTS idx_id ON users(id)
+
+	_, err := u.db.Exec(query)
+
+	if err != nil {
+		panic(fmt.Errorf("failed to init subscription_plans table: %v", err))
+	}
+}
+
 // GetAllSubscriptionPlans returns all available subscription plans
-func (sp *SubscriptionPlan) GetAllSubscriptionPlans() ([]models.SubscriptionPlan, error) {
+func (sp *SubscriptionPlanStorage) GetAllSubscriptionPlans() ([]models.SubscriptionPlan, error) {
 	var plans []models.SubscriptionPlan
 
 	query := "SELECT * FROM subscription_plans"
@@ -27,7 +47,7 @@ func (sp *SubscriptionPlan) GetAllSubscriptionPlans() ([]models.SubscriptionPlan
 }
 
 // GetSubscriptionPlanByID gets a subscription plan by ID
-func (sp *SubscriptionPlan) GetSubscriptionPlanByID(id int64) (*models.SubscriptionPlan, error) {
+func (sp *SubscriptionPlanStorage) GetSubscriptionPlanByID(id int64) (*models.SubscriptionPlan, error) {
 	var plan models.SubscriptionPlan
 
 	query := "SELECT * FROM subscription_plans WHERE id = ?"
@@ -43,7 +63,7 @@ func (sp *SubscriptionPlan) GetSubscriptionPlanByID(id int64) (*models.Subscript
 }
 
 // CreateSubscriptionPlan adds a new subscription plan to the database
-func (sp *SubscriptionPlan) CreateSubscriptionPlan(plan *models.SubscriptionPlan) (int64, error) {
+func (sp *SubscriptionPlanStorage) CreateSubscriptionPlan(plan *models.SubscriptionPlan) (int64, error) {
 	query := `
     INSERT INTO subscription_plans (country, name, description, duration_months, data_limit_gb, speed_limit_mbps, device_limit, price)
     VALUES (:country, :name, :description, :duration_months, :data_limit_gb, :speed_limit_mbps, :device_limit, :price)
@@ -62,7 +82,7 @@ func (sp *SubscriptionPlan) CreateSubscriptionPlan(plan *models.SubscriptionPlan
 }
 
 // UpdateSubscriptionPlan updates an existing subscription plan in the database
-func (sp *SubscriptionPlan) UpdateSubscriptionPlan(plan *models.SubscriptionPlan) error {
+func (sp *SubscriptionPlanStorage) UpdateSubscriptionPlan(plan *models.SubscriptionPlan) error {
 	query := `
     UPDATE subscription_plans
     SET country = :country, name = :name, description = :description,
@@ -89,7 +109,7 @@ func (sp *SubscriptionPlan) UpdateSubscriptionPlan(plan *models.SubscriptionPlan
 }
 
 // DeleteSubscriptionPlanByID deletes the subscription plan by ID
-func (sp *SubscriptionPlan) DeleteSubscriptionPlanByID(id int64) error {
+func (sp *SubscriptionPlanStorage) DeleteSubscriptionPlanByID(id int64) error {
 	query := "DELETE FROM subscription_plans WHERE id = ?"
 	result, err := sp.db.Exec(query, id)
 	if err != nil {

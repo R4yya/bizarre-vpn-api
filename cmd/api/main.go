@@ -30,19 +30,14 @@ func main() {
 
 	log.Info("database initialization")
 
-	storage, err := cStorage.Init(cfg.StoragePath, log)
-
-	if err != nil {
-		log.Error("database initialization error", sl.Err(err))
-		return
-	}
+	storage := cStorage.MustInit(cfg.StoragePath, log)
 
 	//TODO: need to relocate func call to graceful shutdown
 	defer storage.CloseDB()
 
 	log.Info("database initialized successful")
 
-	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg.WebAppUrl)
+	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg.WebAppUrl, storage)
 
 	go bot.Start()
 	log.Info("TG bot successfully started")
@@ -55,7 +50,7 @@ func main() {
 
 	log.Debug("server address", slog.String("host", cfg.HttpServer.Host), slog.Int("port", cfg.HttpServer.Port))
 
-	if err = r.Run(serverAddress); err != nil {
+	if err := r.Run(serverAddress); err != nil {
 		log.Error("server listening error", sl.Err(err))
 		return
 	}
