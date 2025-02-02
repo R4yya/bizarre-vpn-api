@@ -40,7 +40,7 @@ type SubscriptionPlanRequest struct {
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /plans [get]
 func (h *SubscriptionPlanHandler) GetAllPlansHandler(c *gin.Context) {
-	const op = "handlers.subscription_plan.GetAllPlansHandler"
+	const op = "subscription_plan.GetAllPlansHandler"
 
 	log := h.Log.With(
 		slog.String("op", op),
@@ -69,7 +69,7 @@ func (h *SubscriptionPlanHandler) GetAllPlansHandler(c *gin.Context) {
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /plans/{id} [get]
 func (h *SubscriptionPlanHandler) GetPlanHandler(c *gin.Context) {
-	const op = "handlers.subscription_plan.GetPlanHandler"
+	const op = "subscription_plan.GetPlanHandler"
 
 	log := h.Log.With(
 		slog.String("op", op),
@@ -160,7 +160,7 @@ func (h *SubscriptionPlanHandler) CreatePlanHandler(c *gin.Context) {
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /plans/{id} [put]
 func (h *SubscriptionPlanHandler) UpdatePlanHandler(c *gin.Context) {
-	const op = "handlers.subscription_plan.UpdatePlanHandler"
+	const op = "subscription_plan.UpdatePlanHandler"
 
 	log := h.Log.With(
 		slog.String("op", op),
@@ -222,7 +222,7 @@ func (h *SubscriptionPlanHandler) UpdatePlanHandler(c *gin.Context) {
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /plans/{id} [delete]
 func (h *SubscriptionPlanHandler) DeletePlanHandler(c *gin.Context) {
-	const op = "handlers.subscription_plan.UpdatePlanHandler"
+	const op = "subscription_plan.UpdatePlanHandler"
 
 	log := h.Log.With(
 		slog.String("op", op),

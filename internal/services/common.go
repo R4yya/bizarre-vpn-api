@@ -6,6 +6,7 @@ import (
 )
 
 type UserStorage interface {
+	GetUsersList() (*[]models.BaseUser, error)
 	GetUserById(ID int64, executor storage.Executor) (*models.BaseUser, error)
 	CreateUser(username string, executor storage.Executor) (userId int64, Err error)
 	UpdateUserRefreshToken(ID int64, refreshToken string) error

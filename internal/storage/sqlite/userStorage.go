@@ -5,14 +5,11 @@ import (
 	"errors"
 	"fmt"
 
+	"bizarre-vpn-api/internal/services"
 	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
 	"github.com/jmoiron/sqlx"
-)
-
-const (
-	userBasicRole string = "basic"
 )
 
 type UserStorage struct {
@@ -38,6 +35,25 @@ func (u *UserStorage) MustInit() {
 	}
 }
 
+func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
+	var usersList []models.FullUser
+
+	query := "SELECT * FROM users"
+	err := u.db.Select(&usersList, query)
+
+	if err != nil {
+		return nil, fmt.Errorf("getting users list error: %w", err)
+	}
+
+	var basicUsersList []models.BaseUser
+
+	for _, fullUser := range usersList {
+		basicUsersList = append(basicUsersList, fullUser.BaseUser)
+	}
+
+	return &basicUsersList, nil
+}
+
 // GetUserByTelegramID gets the user by Telegram ID
 func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.BaseUser, error) {
 	if executor == nil {
@@ -45,8 +61,6 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 	}
 
 	var user models.FullUser
-
-	fmt.Println("-----ID", ID)
 
 	query := "SELECT * FROM users WHERE id = ?"
 	err := sqlx.Get(executor, &user, query, ID)
@@ -69,7 +83,7 @@ func (u *UserStorage) CreateUser(username string, executor storage.Executor) (us
 	user := &models.FullUser{
 		BaseUser: models.BaseUser{
 			Username: username,
-			Role:     userBasicRole,
+			Role:     services.UserBasicRole,
 		},
 		RefreshToken: "",
 	}

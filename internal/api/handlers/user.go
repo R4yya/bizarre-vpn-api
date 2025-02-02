@@ -23,8 +23,38 @@ type UserAuthorizationRequest struct {
 	IsBot        bool   `json:"isBot"`
 }
 
-// GetUserInfoHandler processes the user authorization request
-// @Summary Get User Info
+// GetUserDataHandler processes the user authorization request
+// @Summary Get User Data
+// @Security token
+// @scope.admin only administrative information
+// @Description Getting base user list for admin
+// @Tags Users
+// @Produce json
+// @Success 200 {object} []models.BaseUser "Users Data"
+// @Failure 401 {object} MessageResponse "Unauthorized"
+// @Failure 403 {object} MessageResponse "Forbidden"
+// @Failure 500 {object} MessageResponse "Internal server error"
+// @Router /users/list [get]
+func (h *UserHandler) GetUsersListHandler(c *gin.Context) {
+	const op = "handlers.user.GetUsersListHandler"
+
+	log := h.Log.With(
+		slog.String("op", op),
+	)
+
+	usersList, err := h.UserStorage.GetUsersList()
+
+	if err != nil {
+		log.Error("getting usersList error", sl.Err(err))
+		c.JSON(http.StatusInternalServerError, MessageResponse{Message: "something went wrong try again later"})
+		return
+	}
+
+	c.JSON(http.StatusOK, usersList)
+}
+
+// GetUserDataHandler processes the user authorization request
+// @Summary Get User Data
 // @Security token
 // @Description Getting base user data by token
 // @Tags Users
@@ -33,7 +63,7 @@ type UserAuthorizationRequest struct {
 // @Failure 401 {object} MessageResponse "Unauthorized"
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /users [get]
-func (h *UserHandler) GetUserInfoHandler(c *gin.Context) {
+func (h *UserHandler) GetUserDataHandler(c *gin.Context) {
 	const op = "handlers.user.GetUserInfo"
 
 	log := h.Log.With(
