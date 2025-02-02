@@ -60,9 +60,9 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 		return
 	}
 
-	initDataPayload, isOk, err := initData.ValidateInitData(req.InitDataStr, ah.CFG.TelegramBotToken, time.Hour)
+	initDataPayload, err := initData.ValidateInitData(req.InitDataStr, ah.CFG.TelegramBotToken, time.Hour)
 
-	if err != nil || !isOk {
+	if err != nil {
 		log.Info("ValidateInitData err", sl.Err(err))
 		c.JSON(http.StatusBadRequest, MessageResponse{Message: "ValidateInitData error"})
 		return

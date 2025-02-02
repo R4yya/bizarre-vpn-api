@@ -27,21 +27,21 @@ func ValidateInitData(
 	initDataStr string,
 	botToken string,
 	expirationTime time.Duration,
-) (payload *InitDataUserPayload, isOk bool, Err error) {
+) (payload *InitDataUserPayload, Err error) {
 	op := "internal.lib.initData.validateInitData"
 
 	// Парсим initData в map
 	initData, err := url.ParseQuery(initDataStr)
 	if err != nil {
 		mes := "error when parsing initData"
-		return nil, false, fmt.Errorf("%v: %v: %w", op, mes, err)
+		return nil, fmt.Errorf("%v: %v: %w", op, mes, err)
 	}
 
 	// извлекаем hash
 	receivedHash := initData.Get("hash")
 	if receivedHash == "" {
 		mes := "hash is not defined"
-		return nil, false, fmt.Errorf("%v: %v", op, mes)
+		return nil, fmt.Errorf("%v: %v", op, mes)
 	}
 
 	// Удаляем хэш из данных для проверки
@@ -74,25 +74,25 @@ func ValidateInitData(
 	// Сравниваем хэши
 	if receivedHash != expectedHash {
 		mes := "wrong hash"
-		return nil, false, fmt.Errorf("%v: %v", op, mes)
+		return nil, fmt.Errorf("%v: %v", op, mes)
 	}
 
 	// Проверяем просроченность initData
 	authDateStr := initData.Get("auth_date")
 	if authDateStr == "" {
 		mes := "not found "
-		return nil, false, fmt.Errorf("%v: %v", op, mes)
+		return nil, fmt.Errorf("%v: %v", op, mes)
 	}
 
 	authDate, err := strconv.ParseInt(authDateStr, 10, 64)
 	if err != nil {
 		mes := "error when parsing auth_date"
-		return nil, false, fmt.Errorf("%v: %v: %w", op, mes, err)
+		return nil, fmt.Errorf("%v: %v: %w", op, mes, err)
 	}
 
 	authTime := time.Unix(authDate, 0)
 	if time.Since(authTime) > expirationTime {
-		return nil, false, fmt.Errorf("initData is expire")
+		return nil, fmt.Errorf("initData is expire")
 	}
 
 	userJsonString := initData.Get("user")
@@ -103,8 +103,8 @@ func ValidateInitData(
 
 	if err != nil {
 		mes := "error when unmarshal initDataUserPayload"
-		return nil, false, fmt.Errorf("%v: %v: %w", op, mes, err)
+		return nil, fmt.Errorf("%v: %v: %w", op, mes, err)
 	}
 
-	return &initDataUserPayload, true, nil
+	return &initDataUserPayload, nil
 }
