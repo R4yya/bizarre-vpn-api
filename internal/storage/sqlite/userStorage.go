@@ -34,7 +34,7 @@ func (u *UserStorage) MustInit() {
 	_, err := u.db.Exec(query)
 
 	if err != nil {
-		panic(fmt.Errorf("failed to init users table: %v", err))
+		panic(fmt.Errorf("failed to init users table: %w", err))
 	}
 }
 
@@ -94,7 +94,7 @@ func (u *UserStorage) CreateUser(username string, executor storage.Executor) (us
 func (u *UserStorage) GetUserRefreshToken(ID int64) (string, error) {
 	var refreshToken string
 
-	query := "SELECT refreshToken FROM users WHERE id = ?"
+	query := "SELECT refresh_token FROM users WHERE id = ?"
 	err := u.db.Get(&refreshToken, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -116,7 +116,7 @@ func (u *UserStorage) UpdateUserRefreshToken(ID int64, refreshToken string) erro
 
 	_, err := u.db.NamedExec(query, params)
 	if err != nil {
-		return fmt.Errorf("failed to update user token for userId %d: %v", ID, err)
+		return fmt.Errorf("failed to update user token for userId %d: %w", ID, err)
 	}
 
 	return nil

@@ -19,6 +19,7 @@ type Config struct {
 	StoragePath      string     `yaml:"storage_path" env-required:"true"`
 	TelegramBotToken string     `yaml:"telegram_bot_token" env-required:"true"`
 	WebAppUrl        string     `yaml:"web_app_url" env-required:"true"`
+	JWT              JWT        `yaml:"jwt" env-required:"true"`
 	HttpServer       HttpServer `yaml:"http_server" env-required:"true"`
 }
 
@@ -27,6 +28,11 @@ type HttpServer struct {
 	Port        int           `yaml:"port" env-required:"true"`
 	Timeout     time.Duration `yaml:"timeout" env-required:"true"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-required:"true"`
+}
+
+type JWT struct {
+	AccessSecretKey  string `yaml:"accessSecretKey" env-required:"true"`
+	RefreshSecretKey string `yaml:"refreshSecretKey" env-required:"true"`
 }
 
 func MustLoadConfig() *Config {

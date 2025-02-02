@@ -6,14 +6,15 @@ import (
 
 	tele "gopkg.in/telebot.v4"
 
+	"bizarre-vpn-api/internal/config"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
-func registerHandlers(b *tele.Bot, webAppUrl string, log *slog.Logger, storage *cStorage.Storage) {
+func registerHandlers(b *tele.Bot, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) {
 	b.Handle("/start", func(c tele.Context) error {
-		return handleStart(c, webAppUrl, log, storage)
+		return handleStart(c, cfg, log, storage)
 	})
 
 	b.Handle(tele.OnText, func(c tele.Context) error {
@@ -21,7 +22,7 @@ func registerHandlers(b *tele.Bot, webAppUrl string, log *slog.Logger, storage *
 	})
 }
 
-func handleStart(c tele.Context, webAppUrl string, log *slog.Logger, storage *cStorage.Storage) error {
+func handleStart(c tele.Context, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) error {
 	op := "internal.bot.handlers.handleStart"
 	teleUser := c.Sender()
 
@@ -39,8 +40,12 @@ func handleStart(c tele.Context, webAppUrl string, log *slog.Logger, storage *cS
 		storage.UserStorage,
 		storage.LnkUserProviderStorage,
 	)
-
-	accessToken, refreshToken, err := authService.AuthorizeByTelegram(teleUser.ID, teleUser.Username)
+	accessToken, refreshToken, err := authService.AuthorizeByTelegram(
+		teleUser.ID,
+		teleUser.Username,
+		[]byte(cfg.JWT.AccessSecretKey),
+		[]byte(cfg.JWT.RefreshSecretKey),
+	)
 
 	if err != nil {
 		log.Error(op, sl.Err(err))
