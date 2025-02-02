@@ -13,6 +13,14 @@ func UserRoutes(customRouter *CustomRouter) {
 
 	customRouter.AddGroup("/auth", AuthRoutes)
 
-	customRouter.routerGroup.GET("/", middlewares.AuthRequired(customRouter.log, customRouter.cfg), userHandler.GetUserInfoHandler)
-	// customRouter.routerGroup.POST("/auth", userHandler.AuthorizeUserHandler)
+	customRouter.routerGroup.GET("/",
+		middlewares.AuthRequired(customRouter.log, customRouter.cfg),
+		userHandler.GetUserDataHandler,
+	)
+
+	customRouter.routerGroup.GET("/list",
+		middlewares.AuthRequired(customRouter.log, customRouter.cfg),
+		middlewares.AdminRoleRequired(customRouter.log),
+		userHandler.GetUsersListHandler,
+	)
 }

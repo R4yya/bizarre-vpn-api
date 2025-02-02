@@ -19,7 +19,7 @@ run:
 # Generate Swagger documentation
 .PHONY: swagger
 swagger:
-	swag init --parseDependency --dir ./cmd/api,./internal/api/handlers --output $(SWAGGER_DIR)
+	swag init --parseDependency --dir ./cmd/api,./internal/api/handlers	--exclude ./internal/api/handlers/subscription_plan	--output $(SWAGGER_DIR)
 	rm ./docs/docs.go
 	rm ./docs/swagger.yaml
 # Build API for production
