@@ -14,19 +14,51 @@ import (
 
 func registerHandlers(b *tele.Bot, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) {
 	b.Handle("/start", func(c tele.Context) error {
-		return handleStart(c, cfg, log, storage)
+		return handleStart(c, cfg.WebAppUrl, log)
+	})
+
+	b.Handle("/auth", func(c tele.Context) error {
+		return handleAuth(c, cfg, log, storage)
 	})
 
 	b.Handle(tele.OnText, func(c tele.Context) error {
-		return c.Send("Извините, я понимаю только команду /start.")
+		return c.Send("Извините, я понимаю только команды /start или /auth.")
 	})
 }
 
-func handleStart(c tele.Context, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) error {
+func handleStart(c tele.Context, webAppUrl string, log *slog.Logger) error {
 	op := "internal.bot.handlers.handleStart"
+
+	log = log.With(slog.String("op", op))
+
 	teleUser := c.Sender()
 
 	if teleUser.IsBot {
+		log.Info("bot user request denied")
+		c.Send("Извините, мы не работает с ботами")
+	}
+
+	webApp := tele.WebApp{URL: webAppUrl}
+	btn := tele.InlineButton{Text: "Открыть BizarreVPN", WebApp: &webApp}
+
+	inlineKeyboard := [][]tele.InlineButton{
+		{btn},
+	}
+
+	return c.Send("Нажми на кнопку, чтобы открыть Mini App.", &tele.ReplyMarkup{
+		InlineKeyboard: inlineKeyboard,
+	})
+}
+
+func handleAuth(c tele.Context, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) error {
+	op := "internal.bot.handlers.handleAuth"
+
+	log = log.With(slog.String("op", op))
+
+	teleUser := c.Sender()
+
+	if teleUser.IsBot {
+		log.Info("bot user request denied")
 		c.Send("Извините, мы не работает с ботами")
 	}
 
@@ -54,22 +86,9 @@ func handleStart(c tele.Context, cfg *config.Config, log *slog.Logger, storage *
 		return nil
 	}
 
-	mes := fmt.Sprintf("Добро пожаловать, %v! Ваш аккаунт был создан. %v, %v", teleUser.FirstName, accessToken, refreshToken)
+	mes := fmt.Sprintf("Добро пожаловать, %v! \n\n%v \n\n%v", teleUser.FirstName, accessToken, refreshToken)
 
 	c.Send(mes)
 
 	return nil
 }
-
-// func handleStart(c tele.Context, webAppUrl string) error {
-// 	webApp := tele.WebApp{URL: webAppUrl}
-// 	btn := tele.InlineButton{Text: "Открыть BizarreVPN", WebApp: &webApp}
-
-// 	inlineKeyboard := [][]tele.InlineButton{
-// 		{btn},
-// 	}
-
-// 	return c.Send("Нажми на кнопку, чтобы открыть Mini App.", &tele.ReplyMarkup{
-// 		InlineKeyboard: inlineKeyboard,
-// 	})
-// }
