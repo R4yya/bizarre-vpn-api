@@ -71,7 +71,7 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 	userId, err := s.userStorage.CreateUser(username, tx)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 
 		return 0, nil, fmt.Errorf("failed to create user: %w", err)
 	}
@@ -84,14 +84,14 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 
 	result, err := sqlx.NamedExec(tx, query, lnkUserProvider)
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 
 		return 0, nil, fmt.Errorf("failed to create LnkUserProvider: %w", err)
 	}
 
 	lnkUserProviderId, err := result.LastInsertId()
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 
 		return 0, nil, fmt.Errorf("failed to retrieve last insert of LnkUserProvider ID for : %w", err)
 	}
@@ -99,12 +99,12 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 	createdUser, err = s.userStorage.GetUserById(userId, tx)
 
 	if err != nil {
-		tx.Rollback()
+		_ = tx.Rollback()
 
 		return 0, nil, fmt.Errorf("failed to getting created user: %w", err)
 	}
 
-	tx.Commit()
+	_ = tx.Commit()
 
 	return lnkUserProviderId, createdUser, nil
 }

@@ -39,7 +39,15 @@ func main() {
 	storage := cStorage.MustInit(cfg.StoragePath, log)
 
 	//TODO: need to relocate func call to graceful shutdown
-	defer storage.CloseDB()
+	defer func() {
+		err := storage.CloseDB()
+
+		if err != nil {
+			log.Error("storage.CloseDB error", sl.Err(err))
+		}
+
+		log.Info("app is shutdown")
+	}()
 
 	log.Info("database initialized successful")
 

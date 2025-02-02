@@ -1,9 +1,12 @@
 # Environment variables
+PROJECT_DIR = $(shell pwd)
+PROJECT_BIN = $(PROJECT_DIR)/bin
 APP_NAME = api
-BUILD_DIR = bin
 SWAGGER_DIR = ./docs
 API_SRC = cmd/api/main.go
 CONFIG_FILE ?= config/local.yaml
+
+GOLANGCI_LINT = $(PROJECT_BIN)/golangci-lint
 
 # Install dependencies
 .PHONY: deps
@@ -25,21 +28,40 @@ swagger:
 # Build API for production
 .PHONY: build
 build:
-	go build -ldflags "-s -w" -o $(BUILD_DIR)/$(APP_NAME_API) $(API_SRC)
+	go build -ldflags "-s -w" -o $(PROJECT_BIN)/$(APP_NAME_API) $(API_SRC)
 
 # Launch the collected API binary
 .PHONY: start
 start:
-	$(BUILD_DIR)/$(APP_NAME_API) --config=$(CONFIG_FILE)
+	$(PROJECT_BIN)/$(APP_NAME_API) --config=$(CONFIG_FILE)
 
 # Clear the collected files
 .PHONY: clean
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf $(PROJECT_BIN)
 
 # Installing everything from scratch
 .PHONY: setup
 setup: deps swagger build
+
+# Install linter
+.PHONY: .install-linter
+.install-linter:
+	@echo "INSTALL GOLANGCI-LINT"
+	@if [ ! -f $(GOLANGCI_LINT) ]; then \
+		echo "golangci-lint не найден. Скачиваем и устанавливаем..."; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.63.4; \
+		echo "Даём права на исполнение"; \
+		chmod +x $(GOLANGCI_LINT); \
+		echo "golangci-lint успешно установлен в $(GOLANGCI_LINT)"; \
+	else \
+		echo "golangci-lint уже установлен в $(GOLANGCI_LINT)"; \
+	fi
+# Run Linter
+.PHONY: lint
+lint: .install-linter
+	### RUN GOLANGCI-LINT ###
+	$(GOLANGCI_LINT) run ./... --config=./.golangci.yml
 
 .PHONY: help
 help:
