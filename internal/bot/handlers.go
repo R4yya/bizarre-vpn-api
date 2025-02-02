@@ -35,7 +35,7 @@ func handleStart(c tele.Context, webAppUrl string, log *slog.Logger) error {
 
 	if teleUser.IsBot {
 		log.Info("bot user request denied")
-		c.Send("Извините, мы не работает с ботами")
+		_ = c.Send("Извините, мы не работает с ботами")
 	}
 
 	webApp := tele.WebApp{URL: webAppUrl}
@@ -59,7 +59,7 @@ func handleAuth(c tele.Context, cfg *config.Config, log *slog.Logger, storage *c
 
 	if teleUser.IsBot {
 		log.Info("bot user request denied")
-		c.Send("Извините, мы не работает с ботами")
+		_ = c.Send("Извините, мы не работает с ботами")
 	}
 
 	log.Debug("telegram user data",
@@ -81,14 +81,12 @@ func handleAuth(c tele.Context, cfg *config.Config, log *slog.Logger, storage *c
 
 	if err != nil {
 		log.Error(op, sl.Err(err))
-		c.Send("Произошла непредвиденная ошибка, попробуйте ещё раз")
+		_ = c.Send("Произошла непредвиденная ошибка, попробуйте ещё раз")
 
 		return nil
 	}
 
 	mes := fmt.Sprintf("Добро пожаловать, %v! \n\n%v \n\n%v", teleUser.FirstName, accessToken, refreshToken)
 
-	c.Send(mes)
-
-	return nil
+	return c.Send(mes)
 }
