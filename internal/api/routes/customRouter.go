@@ -44,7 +44,7 @@ func SetupCustomRouter(
 	cfg *config.Config,
 	storage *sqlite.Storage,
 ) *CustomRouter {
-	router := gin.Default()
+	router := gin.New()
 
 	return &CustomRouter{
 		_router:     router,

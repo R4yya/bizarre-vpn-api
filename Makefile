@@ -1,7 +1,7 @@
 # Environment variables
 PROJECT_DIR = $(shell pwd)
 PROJECT_BIN = $(PROJECT_DIR)/bin
-APP_NAME = api
+APP_NAME = bizzareAPI
 SWAGGER_DIR = ./docs
 API_SRC = cmd/api/main.go
 CONFIG_FILE ?= config/local.yaml
@@ -28,12 +28,17 @@ swagger:
 # Build API for production
 .PHONY: build
 build:
-	go build -ldflags "-s -w" -o $(PROJECT_BIN)/$(APP_NAME_API) $(API_SRC)
+	go build -ldflags "-s -w" -o $(PROJECT_BIN)/$(APP_NAME) $(API_SRC)
+
+# Build API for production Linux
+.PHONY: build
+build-linux:
+	GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o $(PROJECT_BIN)/$(APP_NAME) $(API_SRC)
 
 # Launch the collected API binary
 .PHONY: start
 start:
-	$(PROJECT_BIN)/$(APP_NAME_API) --config=$(CONFIG_FILE)
+	$(PROJECT_BIN)/$(APP_NAME) --config=$(CONFIG_FILE)
 
 # Clear the collected files
 .PHONY: clean
