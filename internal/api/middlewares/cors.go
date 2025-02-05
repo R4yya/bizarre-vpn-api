@@ -8,8 +8,8 @@ import (
 )
 
 // CORS loads the CORS configuration from environment variables and returns middleware
-func CORS() gin.HandlerFunc {
-	allowOrigins := []string{"*"}
+func CORS(originsDomains []string) gin.HandlerFunc {
+	allowOrigins := originsDomains
 	allowMethods := []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	allowHeaders := []string{"Origin", "Content-Type", "Authorization"}
 	exposeHeaders := []string{"Content-Length"}

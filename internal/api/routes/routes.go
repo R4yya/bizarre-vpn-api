@@ -21,7 +21,7 @@ func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage) 
 		})
 	})
 
-	customRouter._router.Use(middlewares.CORS())
+	customRouter._router.Use(middlewares.CORS(cfg.HttpServer.AllowOrigins))
 
 	customRouter._router.Use(middlewares.RequestsLogger(log))
 

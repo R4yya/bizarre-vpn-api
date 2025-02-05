@@ -21,18 +21,31 @@ type AuthHandler struct {
 	LnkUserProviderStorage services.LnkUserProviderStorage
 }
 
-type Tokens struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
-}
-
-type TokensResponse struct {
-	Message string `json:"message"`
-	Tokens  Tokens `json:"tokens"`
+type AuthResponse struct {
+	Message     string `json:"message"`
+	AccessToken string `json:"accessToken"`
 }
 
 type InitDataRequestData struct {
 	InitDataStr string `json:"initDataStr"`
+}
+
+const RefreshTokenCookieKey = "refreshToken"
+
+var tokenCookieLifeTime = 60 * 60 * 24 * 60 // lifetime in seconds
+
+func setNewRefreshToken(c *gin.Context, refreshToken string) {
+	tokenString := "Bearer " + refreshToken
+
+	c.SetCookie(
+		RefreshTokenCookieKey,
+		tokenString,
+		tokenCookieLifeTime,
+		"/",
+		"",
+		false,
+		true,
+	)
 }
 
 // AuthorizeWithInitData processes the user authorization with telegram initData
@@ -42,7 +55,7 @@ type InitDataRequestData struct {
 // @Accept json
 // @Produce json
 // @Param initDataStr body InitDataRequestData true "telegram user initData string"
-// @Success 200 {object} TokensResponse "Success generate new pair of tokens"
+// @Success 200 {object} AuthResponse "Success generate new pair of tokens"
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /users/auth/telegram-init-data [post]
@@ -87,9 +100,11 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, TokensResponse{
-		Message: "Successful authorize with telegram",
-		Tokens:  Tokens{AccessToken: accessToken, RefreshToken: refreshToken},
+	setNewRefreshToken(c, refreshToken)
+
+	c.JSON(http.StatusOK, AuthResponse{
+		Message:     "Successful authorize with telegram",
+		AccessToken: accessToken,
 	})
 }
 
@@ -97,10 +112,8 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 // @Summary Refresh Tokens
 // @Description Generating new pair of auth tokens if refresh token is valid
 // @Tags Users Auth
-// @Accept json
 // @Produce json
-// @Param RefreshToken header string true "RefreshToken"
-// @Success 200 {object} TokensResponse "Success generate new pair of tokens"
+// @Success 200 {object} AuthResponse "Success generate new pair of tokens"
 // @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
 // @Failure 500 {object} MessageResponse "Internal server error"
 // @Router /users/auth/refresh-tokens [post]
@@ -111,7 +124,7 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 		slog.String("op", op),
 	)
 
-	tokenInfo, token, err := helpers.ParseTokenFromHeader(c, log, "RefreshToken", ah.CFG.JWT.RefreshSecretKey)
+	tokenInfo, token, err := helpers.ParseTokenFromCookie(c, log, RefreshTokenCookieKey, ah.CFG.JWT.RefreshSecretKey)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -148,8 +161,10 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, TokensResponse{
-		Message: "Токены успешно обновлены",
-		Tokens:  Tokens{AccessToken: accessToken, RefreshToken: refreshToken},
+	setNewRefreshToken(c, refreshToken)
+
+	c.JSON(http.StatusOK, AuthResponse{
+		Message:     "Токены успешно обновлены",
+		AccessToken: accessToken,
 	})
 }
