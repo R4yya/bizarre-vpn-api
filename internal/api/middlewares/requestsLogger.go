@@ -33,7 +33,7 @@ func RequestsLogger(log *slog.Logger) gin.HandlerFunc {
 		builder.WriteString("|")
 		builder.WriteString(formatting.PadString(time.Since(t1).String(), 14))
 		builder.WriteString("|")
-		builder.WriteString(formatting.PadString(strings.Split(r.RemoteAddr, ":")[0], 15))
+		builder.WriteString(formatting.PadString(r.RemoteAddr, 15))
 		builder.WriteString("|")
 		builder.WriteString(formatting.PadString(r.Method, 6))
 		builder.WriteString("| ")
