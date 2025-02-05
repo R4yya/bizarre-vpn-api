@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"os"
 
+	"gopkg.in/natefinch/lumberjack.v2"
+
 	"bizarre-vpn-api/internal/config"
 	"bizarre-vpn-api/internal/lib/logger/handlers/slogpretty"
-
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 func SetupLogger(env string) *slog.Logger {

@@ -1,12 +1,12 @@
 # Environment variables
 PROJECT_DIR = $(shell pwd)
-PROJECT_BIN = $(PROJECT_DIR)/bin
+PROJECT_BUILD = $(PROJECT_DIR)/bin
 APP_NAME = bizzareAPI
 SWAGGER_DIR = ./docs
 API_SRC = cmd/api/main.go
 CONFIG_FILE ?= config/local.yaml
 
-GOLANGCI_LINT = $(PROJECT_BIN)/golangci-lint
+GOLANGCI_LINT = $(PROJECT_BUILD)/golangci-lint
 
 # Install dependencies
 .PHONY: deps
@@ -28,22 +28,22 @@ swagger:
 # Build API for production
 .PHONY: build
 build:
-	go build -ldflags "-s -w" -o $(PROJECT_BIN)/$(APP_NAME) $(API_SRC)
+	go build -ldflags "-s -w" -o $(PROJECT_BUILD)/$(APP_NAME) $(API_SRC)
 
 # Build API for production Linux
 .PHONY: build
 build-linux:
-	GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o $(PROJECT_BIN)/$(APP_NAME) $(API_SRC)
+	GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o $(PROJECT_BUILD)/$(APP_NAME) $(API_SRC)
 
 # Launch the collected API binary
 .PHONY: start
 start:
-	$(PROJECT_BIN)/$(APP_NAME) --config=$(CONFIG_FILE)
+	$(PROJECT_BUILD)/$(APP_NAME) --config=$(CONFIG_FILE)
 
 # Clear the collected files
 .PHONY: clean
 clean:
-	rm -rf $(PROJECT_BIN)
+	rm -rf $(PROJECT_BUILD)
 
 # Installing everything from scratch
 .PHONY: setup
@@ -55,7 +55,7 @@ setup: deps swagger build
 	@echo "INSTALL GOLANGCI-LINT"
 	@if [ ! -f $(GOLANGCI_LINT) ]; then \
 		echo "golangci-lint не найден. Скачиваем и устанавливаем..."; \
-		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BIN) v1.63.4; \
+		curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(PROJECT_BUILD) v1.63.4; \
 		echo "Даём права на исполнение"; \
 		chmod +x $(GOLANGCI_LINT); \
 		echo "golangci-lint успешно установлен в $(GOLANGCI_LINT)"; \
