@@ -25,7 +25,37 @@ func ParseTokenFromHeader(
 
 	log.Debug(fmt.Sprintf("Client %v header is received", tokenKeyName))
 
-	parts := strings.Split(authHeader, " ")
+	return parseTokenFrom(log, tokenKeyName, authHeader, jwtSecretKey)
+}
+
+func ParseTokenFromCookie(
+	c *gin.Context,
+	log *slog.Logger,
+	tokenKeyName string,
+	jwtSecretKey string,
+) (tokenInfo *jwt.TokenBody, receivedToken string, Err error) {
+	cookieString, err := c.Cookie(tokenKeyName)
+
+	if err != nil {
+		return nil, "", fmt.Errorf("%v cookie is required: %v", tokenKeyName, err)
+	}
+
+	if cookieString == "" {
+		return nil, "", fmt.Errorf("%v cookie is required", tokenKeyName)
+	}
+
+	log.Debug(fmt.Sprintf("Client %v cookie is received", tokenKeyName))
+
+	return parseTokenFrom(log, tokenKeyName, cookieString, jwtSecretKey)
+}
+
+func parseTokenFrom(
+	log *slog.Logger,
+	tokenKeyName string,
+	tokenString string,
+	jwtSecretKey string,
+) (tokenInfo *jwt.TokenBody, receivedToken string, Err error) {
+	parts := strings.Split(tokenString, " ")
 
 	if parts[0] != "Bearer" {
 		return nil, "", fmt.Errorf("incorrect flow of %v token, support only a bearer flow", tokenKeyName)
