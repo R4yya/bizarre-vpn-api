@@ -1,7 +1,7 @@
 # Environment variables
 PROJECT_DIR = $(shell pwd)
 PROJECT_BUILD = $(PROJECT_DIR)/bin
-APP_NAME = bizzareAPI
+APP_NAME = bizarre-api
 SWAGGER_DIR = ./docs
 API_SRC = cmd/api/main.go
 CONFIG_FILE ?= config/local.yaml

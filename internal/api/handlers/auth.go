@@ -32,20 +32,13 @@ type InitDataRequestData struct {
 
 const RefreshTokenCookieKey = "refreshToken"
 
-var tokenCookieLifeTime = 60 * 60 * 24 * 60 // lifetime in seconds
+var maxAge = 60 * 60 * 24 * 60 // lifetime in seconds
+var expirationTime = time.Now().Add(time.Duration(maxAge) * time.Second).UTC().Format(http.TimeFormat)
 
 func setNewRefreshToken(c *gin.Context, refreshToken string) {
 	tokenString := "Bearer " + refreshToken
 
-	c.SetCookie(
-		RefreshTokenCookieKey,
-		tokenString,
-		tokenCookieLifeTime,
-		"/",
-		"",
-		false,
-		true,
-	)
+	c.Writer.Header().Set("Set-Cookie", fmt.Sprintf("%v=%v; Path=/; Domain=; Secure; HttpOnly; SameSite=None; Max-Age=%v; Expires=%v", RefreshTokenCookieKey, tokenString, maxAge, expirationTime))
 }
 
 // AuthorizeWithInitData processes the user authorization with telegram initData
