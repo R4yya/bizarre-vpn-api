@@ -35,8 +35,8 @@ func LibrariesRoutes(customRouter *CustomRouter) {
 
 	customRouter.routerGroup.GET(
 		"/protocols-by-backend-type-id",
-		//middlewares.AuthRequired(customRouter.log, customRouter.cfg),
-		//middlewares.AdminRoleRequired(customRouter.log),
+		middlewares.AuthRequired(customRouter.log, customRouter.cfg),
+		middlewares.AdminRoleRequired(customRouter.log),
 		librariesHandler.GetProtocolsListByBackendTypeId,
 	)
 }

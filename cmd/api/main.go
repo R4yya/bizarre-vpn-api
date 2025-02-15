@@ -32,6 +32,7 @@ func main() {
 		slog.String("env", cfg.Env),
 		slog.String("host", cfg.Env),
 		slog.Int("port", cfg.HttpServer.Port),
+		slog.String("baseURL", cfg.HttpServer.BaseURL),
 	)
 
 	log.Info("database initialization")
