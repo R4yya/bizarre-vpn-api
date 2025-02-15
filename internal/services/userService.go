@@ -13,6 +13,7 @@ const (
 )
 
 type UserService struct {
+	log         *slog.Logger
 	userStorage UserStorage
 }
 
@@ -21,6 +22,7 @@ func NewUserService(
 	userStorage UserStorage,
 ) *UserService {
 	return &UserService{
+		log:         log,
 		userStorage: userStorage,
 	}
 }
