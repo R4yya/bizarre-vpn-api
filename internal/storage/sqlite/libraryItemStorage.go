@@ -78,7 +78,7 @@ func (s *LibraryItemStorage) initWithTransaction(executor storage.Executor) erro
 func (s *LibraryItemStorage) GetList() (*[]models.LibraryItem, error) {
 	query := fmt.Sprintf(`SELECT * FROM %v`, s.tableName)
 
-	var list []models.LibraryItem
+	list := []models.LibraryItem{}
 
 	err := s.db.Select(&list, query)
 
@@ -87,4 +87,18 @@ func (s *LibraryItemStorage) GetList() (*[]models.LibraryItem, error) {
 	}
 
 	return &list, nil
+}
+
+func (s *LibraryItemStorage) GetItem(id int64) (*models.LibraryItem, error) {
+	query := fmt.Sprintf(`SELECT * FROM %v WHERE id = ?`, s.tableName)
+
+	var item models.LibraryItem
+
+	err := s.db.Get(&item, query, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &item, nil
 }

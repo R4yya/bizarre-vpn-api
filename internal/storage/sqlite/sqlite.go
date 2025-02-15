@@ -15,12 +15,13 @@ import (
 type Database = *sqlx.DB
 
 type Storage struct {
-	db                      Database
-	SubscriptionPlanStorage *SubscriptionPlanStorage
-	UserStorage             *UserStorage
-	LnkUserProviderStorage  *LnkUserProviderStorage
-	BackendTypesStorage     *LibraryItemStorage
-	ProtocolsStorage        *LibraryItemStorage
+	db                              Database
+	SubscriptionPlanStorage         *SubscriptionPlanStorage
+	UserStorage                     *UserStorage
+	LnkUserProviderStorage          *LnkUserProviderStorage
+	BackendTypesStorage             *LibraryItemStorage
+	ProtocolsStorage                *LibraryItemStorage
+	LnkProtocolsBackendTypesStorage *LnkProtocolsBackendTypesStorage
 }
 
 func MustInit(dbPath string, log *slog.Logger) *Storage {
@@ -75,19 +76,18 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 		},
 	)
 
-	lnkProtocolsBackendTypesStorage := LnkProtocolsBackendTypesStorage{db}
+	lnkProtocolsBackendTypesStorage := &LnkProtocolsBackendTypesStorage{db}
 
 	lnkProtocolsBackendTypesStorage.MustInit()
 
-	_ = lnkProtocolsBackendTypesStorage
-
 	storage := &Storage{
-		db:                      db,
-		SubscriptionPlanStorage: subscriptionPlanStorage,
-		UserStorage:             userStorage,
-		LnkUserProviderStorage:  lnkUserProviderStorage,
-		BackendTypesStorage:     backendTypesStorage,
-		ProtocolsStorage:        protocolsStorage,
+		db:                              db,
+		SubscriptionPlanStorage:         subscriptionPlanStorage,
+		UserStorage:                     userStorage,
+		LnkUserProviderStorage:          lnkUserProviderStorage,
+		BackendTypesStorage:             backendTypesStorage,
+		ProtocolsStorage:                protocolsStorage,
+		LnkProtocolsBackendTypesStorage: lnkProtocolsBackendTypesStorage,
 	}
 
 	return storage

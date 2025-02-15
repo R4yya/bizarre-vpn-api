@@ -71,12 +71,20 @@ func (ps *LnkProtocolsBackendTypesStorage) initWithTransaction(executor storage.
 	return nil
 }
 
-func (s *LnkProtocolsBackendTypesStorage) GetPreparedTable() {
-	query := `SELECT i.name AS item, c.name AS category
-	FROM category_item ci
-	JOIN items i ON ci.item_id = i.id
-	JOIN categories c ON ci.category_id = c.id;
-	`
+func (s *LnkProtocolsBackendTypesStorage) GetProtocolsByBackendTypeId(backendTypeId int64) (*[]models.LibraryItem, error) {
+	query := `SELECT p.id AS id, p.name AS name
+		FROM lnk_protocols_backend_types lpbt
+		JOIN protocols p ON lpbt.protocol_id = p.id
+		WHERE lpbt.backend_type_id = ?
+		`
 
-	_ = query
+	items := []models.LibraryItem{}
+
+	err := s.db.Select(&items, query, backendTypeId)
+
+	if err != nil {
+		return nil, fmt.Errorf("error with getting protocols by backend type id %w", err)
+	}
+
+	return &items, nil
 }

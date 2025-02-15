@@ -10,6 +10,8 @@ func LibrariesRoutes(customRouter *CustomRouter) {
 	librariesService := services.NewLibrariesService(
 		customRouter.log,
 		customRouter.storage.BackendTypesStorage,
+		customRouter.storage.ProtocolsStorage,
+		customRouter.storage.LnkProtocolsBackendTypesStorage,
 	)
 
 	librariesHandler := handlers.LibrariesHandler{
@@ -22,5 +24,19 @@ func LibrariesRoutes(customRouter *CustomRouter) {
 		middlewares.AuthRequired(customRouter.log, customRouter.cfg),
 		middlewares.AdminRoleRequired(customRouter.log),
 		librariesHandler.GetBackendTypesList,
+	)
+
+	customRouter.routerGroup.GET(
+		"/protocols",
+		middlewares.AuthRequired(customRouter.log, customRouter.cfg),
+		middlewares.AdminRoleRequired(customRouter.log),
+		librariesHandler.GetProtocolsList,
+	)
+
+	customRouter.routerGroup.GET(
+		"/protocols-by-backend-type-id",
+		//middlewares.AuthRequired(customRouter.log, customRouter.cfg),
+		//middlewares.AdminRoleRequired(customRouter.log),
+		librariesHandler.GetProtocolsListByBackendTypeId,
 	)
 }
