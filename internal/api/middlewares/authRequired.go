@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"bizarre-vpn-api/internal/api/handlers"
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/config"
 )
@@ -19,7 +20,7 @@ func AuthRequired(log *slog.Logger, cfg *config.Config) gin.HandlerFunc {
 		tokenInfo, _, err := helpers.ParseTokenFromHeader(c, log, "Authorization", cfg.JWT.AccessSecretKey)
 
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.JSON(http.StatusUnauthorized, handlers.ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return
 		}

@@ -13,6 +13,10 @@ import (
 
 func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage) *gin.Engine {
 	customRouter := SetupCustomRouter(log, cfg, storage)
+	gin.SetMode(gin.ReleaseMode)
+
+	customRouter._router.Use(middlewares.RequestsLogger(log))
+	customRouter._router.Use(middlewares.CORS(cfg.HttpServer.AllowOrigins))
 
 	customRouter._router.NoMethod(func(c *gin.Context) {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{
@@ -20,11 +24,9 @@ func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage) 
 		})
 	})
 
-	corsMiddleware := middlewares.CORS()
-	customRouter._router.Use(corsMiddleware)
-
 	customRouter.AddGroup("/ping", PingRoute)
 	customRouter.AddGroup("/users", UserRoutes)
+	customRouter.AddGroup("/libraries", LibrariesRoutes)
 	//customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
 	DocsRoutes(customRouter)
 

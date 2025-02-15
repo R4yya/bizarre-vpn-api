@@ -15,7 +15,7 @@ import (
 // @title BizarreVPN API
 // @version 0.0.1
 // @description API for BizarreVPN project.
-// @host 127.0.0.1:5050
+// @host localhost:5050
 // @BasePath /
 // @securityDefinitions.apikey token
 // @in header
@@ -32,6 +32,7 @@ func main() {
 		slog.String("env", cfg.Env),
 		slog.String("host", cfg.Env),
 		slog.Int("port", cfg.HttpServer.Port),
+		slog.String("baseURL", cfg.HttpServer.BaseURL),
 	)
 
 	log.Info("database initialization")
@@ -60,9 +61,9 @@ func main() {
 
 	log.Info("API successfully started")
 
-	serverAddress := cfg.HttpServer.Host + ":" + strconv.Itoa(cfg.HttpServer.Port)
+	serverAddress := ":" + strconv.Itoa(cfg.HttpServer.Port)
 
-	log.Debug("server address", slog.String("host", cfg.HttpServer.Host), slog.Int("port", cfg.HttpServer.Port))
+	log.Debug("server info", slog.Int("port", cfg.HttpServer.Port))
 
 	if err := r.Run(serverAddress); err != nil {
 		log.Error("server listening error", sl.Err(err))
