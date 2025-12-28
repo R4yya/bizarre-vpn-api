@@ -1,6 +1,7 @@
 package sqlite
 
 import (
+	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 	"fmt"
 )
@@ -65,7 +66,7 @@ func (s *VpnServersStorage) GetExpandedItemById(vpnServerId int64) (*models.VpnS
 	err := s.db.Get(&vpnServer, query, vpnServerId)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get vpn_servers item: %w", err)
+		return nil, storage.ErrPlanNotFound
 	}
 
 	fmt.Printf("\n vpnServer %v \n", vpnServer)
@@ -104,4 +105,24 @@ func (s *VpnServersStorage) CreateItem(vpnServer *models.VpnServerItem) (int64, 
 	}
 
 	return vpnServerID, nil
+}
+
+func (s *VpnServersStorage) DeleteItem(vpnServerId int64) error {
+	query := `DELETE FROM vpn_servers WHERE id = ?`
+
+	result, err := s.db.Exec(query, vpnServerId)
+	if err != nil {
+		return fmt.Errorf("failed to delete vpn_server: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get affected rows: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return storage.ErrVpnServerNotFound
+	}
+
+	return nil
 }

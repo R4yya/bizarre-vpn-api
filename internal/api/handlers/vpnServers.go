@@ -3,7 +3,9 @@ package handlers
 import (
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -90,9 +92,9 @@ func (h *VpnServersHandler) GetExpandedItem(c *gin.Context) {
 	item, err := h.VpnServersService.GetExpandedItemById(vpnServerId)
 
 	if err != nil {
-		if isNotExist := strings.Contains(err.Error(), "no rows in result set"); isNotExist {
+		if isNotFound := errors.Is(err, storage.ErrVpnServerNotFound); isNotFound {
 			log.Info(err.Error())
-			c.JSON(http.StatusNotFound, ErrorResponse{Error: "not found"})
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "vpn server not found"})
 			c.Abort()
 			return
 		}
@@ -200,5 +202,56 @@ func (h *VpnServersHandler) CreateItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, vpnServerExpanded)
+	c.Abort()
+}
+
+// Delete Item By ID
+// @Summary Delete VpnServerItem by id
+// @Description Delete VpnServerItem by id
+// @Security token
+// @scope.admin only administrative information
+// @Tags VpnServers
+// @Param id path int true "VpnServerItem Id"
+// @Produce json
+// @Success 200 {object} MessageResponse "Success"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
+// @Failure 404 {object} ErrorResponse "VpnServerItem is not exist"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /vpn-servers/{id} [delete]
+func (h *VpnServersHandler) DeleteItem(c *gin.Context) {
+	op := "internal.handlers.vpnServersHandler.DeleteItem"
+
+	log := h.Log.With(slog.String("op", op))
+
+	vpnServerIdStr := c.Param("id")
+
+	vpnServerId, err := strconv.ParseInt(vpnServerIdStr, 10, 64)
+	if err != nil {
+		err = fmt.Errorf("convert error vpnServerIdStr: %w", err)
+		log.Info(err.Error())
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		c.Abort()
+		return
+	}
+
+	err = h.VpnServersService.DeleteItem(vpnServerId)
+
+	if err != nil {
+		if isNotFound := errors.Is(err, storage.ErrVpnServerNotFound); isNotFound {
+			log.Info(err.Error())
+			c.JSON(http.StatusNotFound, ErrorResponse{Error: "vpn server not found"})
+			c.Abort()
+			return
+		}
+
+		log.Error("delete by id error", sl.Err(err))
+
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "something went wrong"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusCreated, MessageResponse{Message: "VpnServer successful deleted"})
 	c.Abort()
 }

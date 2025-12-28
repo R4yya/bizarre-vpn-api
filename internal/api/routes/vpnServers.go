@@ -51,4 +51,16 @@ func VpnServersRoutes(customRouter *CustomRouter) {
 		// ),
 		vpnServersHandler.CreateItem,
 	)
+
+	customRouter.routerGroup.DELETE(
+		"/:id",
+		// middlewares.AuthRequired(
+		// 	customRouter.log,
+		// 	customRouter.cfg,
+		// ),
+		// middlewares.AdminRoleRequired(
+		// 	customRouter.log,
+		// ),
+		vpnServersHandler.DeleteItem,
+	)
 }

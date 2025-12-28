@@ -22,6 +22,7 @@ type VpnServersStorage interface {
 	GetExpandedList() (*[]models.VpnServerExpandedItem, error)
 	GetExpandedItemById(vpnServerId int64) (*models.VpnServerExpandedItem, error)
 	CreateItem(vpnServer *models.VpnServerItem) (int64, error)
+	DeleteItem(vpnServerId int64) error
 }
 
 type VpnServersService struct {
@@ -87,4 +88,16 @@ func (service *VpnServersService) CreateItem(vpnServer *models.VpnServerItem) (i
 	}
 
 	return vpnServerID, nil
+}
+
+func (service *VpnServersService) DeleteItem(vpnServerId int64) error {
+	//op := "internal.services.vpnServersStorage.DeleteItem"
+
+	err := service.vpnServersStorage.DeleteItem(vpnServerId)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
