@@ -22,6 +22,7 @@ type Storage struct {
 	BackendTypesStorage             *LibraryItemStorage
 	ProtocolsStorage                *LibraryItemStorage
 	LnkProtocolsBackendTypesStorage *LnkProtocolsBackendTypesStorage
+	VpnServersStorage               *VpnServersStorage
 }
 
 func MustInit(dbPath string, log *slog.Logger) *Storage {
@@ -39,6 +40,8 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 		log.Error("database initialization error", sl.Err(cErr))
 		panic(cErr)
 	}
+
+	db.MustExec("PRAGMA foreign_keys = ON")
 
 	log.Info(fmt.Sprintf("Connected to SQLite database at %s", dbPath))
 
@@ -80,6 +83,10 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 
 	lnkProtocolsBackendTypesStorage.MustInit()
 
+	vpnServersStorage := &VpnServersStorage{db}
+
+	vpnServersStorage.MustInit()
+
 	storage := &Storage{
 		db:                              db,
 		SubscriptionPlanStorage:         subscriptionPlanStorage,
@@ -88,6 +95,7 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 		BackendTypesStorage:             backendTypesStorage,
 		ProtocolsStorage:                protocolsStorage,
 		LnkProtocolsBackendTypesStorage: lnkProtocolsBackendTypesStorage,
+		VpnServersStorage:               vpnServersStorage,
 	}
 
 	return storage

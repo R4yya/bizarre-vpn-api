@@ -1,0 +1,90 @@
+package services
+
+import (
+	"bizarre-vpn-api/internal/storage/models"
+	"errors"
+	"fmt"
+	"log/slog"
+	"net"
+	"unicode/utf8"
+)
+
+const (
+	ErrorInvalidIp                   = "invalid IP"
+	ErrorInvalidPort                 = "invalid port"
+	ErrorNameIsTooSmall              = "name too small"
+	ErrorUniqueConstraint            = "UNIQUE constraint failed"
+	ErrorUniqueConstraintHostAndPort = "UNIQUE constraint failed: vpn_servers.adapter_host, vpn_servers.adapter_port"
+	ErrorUniqueConstraintName        = "UNIQUE constraint failed: vpn_servers.name"
+)
+
+type VpnServersStorage interface {
+	GetExpandedList() (*[]models.VpnServerExpandedItem, error)
+	GetExpandedItemById(vpnServerId int64) (*models.VpnServerExpandedItem, error)
+	CreateItem(vpnServer *models.VpnServerItem) (int64, error)
+}
+
+type VpnServersService struct {
+	log               *slog.Logger
+	vpnServersStorage VpnServersStorage
+}
+
+func NewVpnServersService(
+	log *slog.Logger,
+	vpnServersStorage VpnServersStorage,
+) *VpnServersService {
+	return &VpnServersService{
+		log:               log,
+		vpnServersStorage: vpnServersStorage,
+	}
+}
+
+func (service *VpnServersService) GetExpandedList() (*[]models.VpnServerExpandedItem, error) {
+	op := "internal.services.vpnServersStorage.GetExpandedList"
+
+	list, err := service.vpnServersStorage.GetExpandedList()
+
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", op, err)
+	}
+
+	return list, nil
+}
+
+func (service *VpnServersService) GetExpandedItemById(vpnServerId int64) (*models.VpnServerExpandedItem, error) {
+	op := "internal.services.vpnServersStorage.GetExpandedItemById"
+
+	item, err := service.vpnServersStorage.GetExpandedItemById(vpnServerId)
+
+	if err != nil {
+		return nil, fmt.Errorf("%v: %w", op, err)
+	}
+
+	return item, nil
+}
+
+func (service *VpnServersService) CreateItem(vpnServer *models.VpnServerItem) (int64, error) {
+	op := "internal.services.vpnServersStorage.CreateItem"
+
+	//log := service.log.With(slog.String("op", op))
+
+	if parsedIp := net.ParseIP(vpnServer.AdapterHost); parsedIp == nil {
+		return 0, errors.New(ErrorInvalidIp)
+	}
+
+	if vpnServer.AdapterPort == 0 {
+		return 0, errors.New(ErrorInvalidPort)
+	}
+
+	if nameLen := utf8.RuneCountInString(vpnServer.Name); nameLen < 3 {
+		return 0, errors.New(ErrorNameIsTooSmall)
+	}
+
+	vpnServerID, err := service.vpnServersStorage.CreateItem(vpnServer)
+
+	if err != nil {
+		return 0, fmt.Errorf("%v: %w", op, err)
+	}
+
+	return vpnServerID, nil
+}
