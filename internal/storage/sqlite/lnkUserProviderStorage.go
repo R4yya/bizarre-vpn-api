@@ -68,7 +68,12 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 		return 0, nil, fmt.Errorf("failed to create transaction: %w", err)
 	}
 
-	userId, err := s.userStorage.CreateUser(username, tx)
+	createUserPayload := &models.CreateUserPayload{
+		Username: username,
+		Role:     models.UserRoleBasic,
+	}
+
+	user, err := s.userStorage.CreateUser(createUserPayload, tx)
 
 	if err != nil {
 		_ = tx.Rollback()
@@ -76,7 +81,7 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 		return 0, nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	lnkUserProvider.UserId = userId
+	lnkUserProvider.UserId = user.ID
 
 	query := `INSERT into lnk_user_providers 
 	(provider_type, external_user_id, user_id) 
@@ -96,7 +101,7 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 		return 0, nil, fmt.Errorf("failed to retrieve last insert of LnkUserProvider ID for : %w", err)
 	}
 
-	createdUser, err = s.userStorage.GetUserById(userId, tx)
+	createdUser, err = s.userStorage.GetUserById(user.ID, tx)
 
 	if err != nil {
 		_ = tx.Rollback()

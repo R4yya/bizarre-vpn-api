@@ -8,7 +8,9 @@ import (
 type UserStorage interface {
 	GetUsersList() (*[]models.BaseUser, error)
 	GetUserById(ID int64, executor storage.Executor) (*models.BaseUser, error)
-	CreateUser(username string, executor storage.Executor) (userId int64, Err error)
-	UpdateUserRefreshToken(ID int64, refreshToken string) error
+	GetUserByUsername(userName string) (*models.BaseUser, error)
+	GetUserPasswordHash(userId int64) (string, error)
 	GetUserRefreshToken(ID int64) (string, error)
+	CreateUser(payload *models.CreateUserPayload, executor storage.Executor) (*models.BaseUser, error)
+	UpdateUserRefreshToken(ID int64, refreshToken string) error
 }

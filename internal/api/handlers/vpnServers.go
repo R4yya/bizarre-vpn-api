@@ -106,7 +106,6 @@ func (h *VpnServersHandler) GetExpandedItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, item)
-	c.Abort()
 }
 
 // CreateItem returns created VpnServerItem
@@ -202,7 +201,6 @@ func (h *VpnServersHandler) CreateItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, vpnServerExpanded)
-	c.Abort()
 }
 
 // Delete Item By ID
@@ -253,5 +251,4 @@ func (h *VpnServersHandler) DeleteItem(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, MessageResponse{Message: "VpnServer successful deleted"})
-	c.Abort()
 }

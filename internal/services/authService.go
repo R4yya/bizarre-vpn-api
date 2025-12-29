@@ -1,13 +1,21 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"strconv"
 
 	"bizarre-vpn-api/internal/lib/jwt"
 	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+var (
+	ErrorAuthServiceIncorrectUsernameOrPass = errors.New("incorrect username or password")
 )
 
 const telegramProviderName string = "telegram"
@@ -155,6 +163,43 @@ func (au *AuthService) AuthorizeByTelegram(
 		accessSecretKey,
 		refreshSecretKey,
 	)
+}
+
+func (au *AuthService) AuthorizeByCredentials(
+	username string,
+	password string,
+	accessSecretKey []byte,
+	refreshSecretKey []byte,
+) (accessToken string, refreshToken string, Err error) {
+	op := "internal.services.auth.AuthorizeByCredentials"
+
+	user, err := au.userStorage.GetUserByUsername(username)
+
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+		}
+
+		return "", "", fmt.Errorf("%v: error when getting user: %w", op, err)
+	}
+
+	userHashedPassword, err := au.userStorage.GetUserPasswordHash(user.ID)
+
+	if err != nil {
+		if errors.Is(err, storage.ErrUserNotFound) {
+			return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+		}
+
+		return "", "", fmt.Errorf("%v: error when getting user password hash : %w", op, err)
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(userHashedPassword), []byte(password))
+
+	if err != nil {
+		return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+	}
+
+	return au.getAuthorizeTokens(user, accessSecretKey, refreshSecretKey)
 }
 
 func (au *AuthService) GetRefreshedTokens(

@@ -6,6 +6,7 @@ import (
 	"bizarre-vpn-api/internal/lib/initData"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -28,6 +29,11 @@ type AuthResponse struct {
 
 type InitDataRequestData struct {
 	InitDataStr string `json:"initDataStr"`
+}
+
+type CredentialRequestData struct {
+	Username string
+	Password string
 }
 
 const RefreshTokenCookieKey = "refreshToken"
@@ -97,6 +103,67 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 
 	c.JSON(http.StatusOK, AuthResponse{
 		Message:     "Successful authorize with telegram",
+		AccessToken: accessToken,
+	})
+}
+
+// AuthorizeWithCredentials processes the user authorization with username and password
+// @Summary User authorization
+// @Description User authorization with username and password
+// @Tags Users Auth
+// @Accept json
+// @Produce json
+// @Param credentials body CredentialRequestData true "Username and Password strings"
+// @Success 200 {object} AuthResponse "Success generate new pair of tokens"
+// @Failure 400 {object} ErrorResponse "Incorrect username or password"
+// @Failure 400 {object} ErrorResponse "Invalid request or missing required parameters"
+// @Failure 500 {object} ErrorResponse "Internal server error"
+// @Router /users/auth/credentials [post]
+func (ah *AuthHandler) AuthorizeWithCredentials(c *gin.Context) {
+	const op = "handlers.auth.AuthorizeWithInitData"
+
+	log := ah.Log.With(
+		slog.String("op", op),
+	)
+
+	var req CredentialRequestData
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	authService := services.NewAuthService(
+		log,
+		ah.UserStorage,
+		ah.LnkUserProviderStorage,
+	)
+
+	accessToken, refreshToken, err := authService.AuthorizeByCredentials(
+		req.Username,
+		req.Password,
+		[]byte(ah.CFG.JWT.AccessSecretKey),
+		[]byte(ah.CFG.JWT.RefreshSecretKey),
+	)
+
+	if err != nil {
+		if errors.Is(err, services.ErrorAuthServiceIncorrectUsernameOrPass) {
+			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
+			c.Abort()
+			return
+		}
+
+		log.Error("authorize error", sl.Err(err))
+
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Something went wrong"})
+		c.Abort()
+		return
+	}
+
+	setNewRefreshToken(c, refreshToken)
+
+	c.JSON(http.StatusOK, AuthResponse{
+		Message:     "Successful authorize with credentials",
 		AccessToken: accessToken,
 	})
 }

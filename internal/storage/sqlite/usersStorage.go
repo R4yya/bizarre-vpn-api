@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"bizarre-vpn-api/internal/services"
 	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
@@ -23,7 +22,8 @@ func (u *UserStorage) MustInit() {
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		role VARCHAR(255),
-		refresh_token TEXT(500)
+		refresh_token TEXT(500),
+		password TEXT
 	);`
 
 	//CREATE INDEX IF NOT EXISTS idx_id ON users(id)
@@ -38,7 +38,13 @@ func (u *UserStorage) MustInit() {
 func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
 	var usersList []models.FullUser
 
-	query := "SELECT * FROM users"
+	query := `SELECT 
+	id,
+	username,
+	role,
+	created_at,
+	updated_at 
+	FROM users`
 	err := u.db.Select(&usersList, query)
 
 	if err != nil {
@@ -62,7 +68,13 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 
 	var user models.FullUser
 
-	query := "SELECT * FROM users WHERE id = ?"
+	query := `SELECT 
+	id,
+	username,
+	role,
+	created_at,
+	updated_at 
+	FROM users WHERE id = ?`
 	err := sqlx.Get(executor, &user, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -74,41 +86,99 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 	return &user.BaseUser, nil
 }
 
-// CreateUser adds a new user to the database
-func (u *UserStorage) CreateUser(username string, executor storage.Executor) (userId int64, Err error) {
+func (u *UserStorage) GetUserByUsername(userName string) (*models.BaseUser, error) {
+	var user models.FullUser
+
+	query := `SELECT 
+	id,
+	username,
+	role,
+	created_at,
+	updated_at 
+	FROM users WHERE username = ?`
+	err := u.db.Get(&user, query, userName)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, storage.ErrUserNotFound
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user.BaseUser, nil
+}
+
+func (u *UserStorage) GetUserPasswordHash(userId int64) (string, error) {
+	const query = `SELECT password FROM users WHERE id = ?`
+
+	var hashedPassword string
+
+	err := u.db.Get(&hashedPassword, query, userId)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", storage.ErrUserNotFound
+		}
+
+		return "", fmt.Errorf("failed to get user password hash: %w", err)
+	}
+
+	return hashedPassword, nil
+}
+
+// CreateUser add a new user to the database
+func (u *UserStorage) CreateUser(
+	payload *models.CreateUserPayload,
+	executor storage.Executor,
+) (*models.BaseUser, error) {
 	if executor == nil {
 		executor = u.db
 	}
 
 	user := &models.FullUser{
 		BaseUser: models.BaseUser{
-			Username: username,
-			Role:     services.UserBasicRole,
+			Username: payload.Username,
+			Role:     payload.Role,
 		},
 		RefreshToken: "",
 	}
 
 	query := `
-    INSERT INTO users (username, refresh_token, role)
-    VALUES (:username, :refresh_token, :role)`
+    INSERT INTO users (username, refresh_token, role, password)
+    VALUES (:username, :refresh_token, :role, :password)`
 
-	result, err := sqlx.NamedExec(executor, query, user)
+	rows, err := sqlx.NamedQuery(
+		executor,
+		query,
+		map[string]interface{}{
+			"username":      user.Username,
+			"refresh_token": user.RefreshToken,
+			"role":          user.Role,
+			"password":      payload.Password,
+		},
+	)
+
 	if err != nil {
-		return 0, fmt.Errorf("failed to create user: %w", err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
-	userID, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("failed to retrieve last insert ID: %w", err)
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.StructScan(&user)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan inserted user: %w", err)
+		}
 	}
 
-	return userID, nil
+	return &user.BaseUser, nil
 }
 
 func (u *UserStorage) GetUserRefreshToken(ID int64) (string, error) {
 	var refreshToken string
 
-	query := "SELECT refresh_token FROM users WHERE id = ?"
+	const query = "SELECT refresh_token FROM users WHERE id = ?"
 	err := u.db.Get(&refreshToken, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
