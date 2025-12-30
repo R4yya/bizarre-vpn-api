@@ -9,6 +9,7 @@ import (
 	"bizarre-vpn-api/internal/config"
 	slogWrapper "bizarre-vpn-api/internal/lib/logger"
 	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/services"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
@@ -38,6 +39,13 @@ func main() {
 	log.Info("database initialization")
 
 	storage := cStorage.MustInit(cfg.StoragePath, log)
+
+	userService := services.NewUserService(
+		log,
+		storage.UserStorage,
+	)
+
+	userService.CreateDefaultUser()
 
 	//TODO: need to relocate func call to graceful shutdown
 	defer func() {

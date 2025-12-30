@@ -22,3 +22,9 @@ var (
 	// ErrPlanNotFound occurs if the plan is not found in the database
 	ErrPlanNotFound = errors.New("subscription plan not found")
 )
+
+// VpnServers Error
+
+var (
+	ErrVpnServerNotFound = errors.New("vpn server not found")
+)

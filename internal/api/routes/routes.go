@@ -27,6 +27,7 @@ func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage) 
 	customRouter.AddGroup("/ping", PingRoute)
 	customRouter.AddGroup("/users", UserRoutes)
 	customRouter.AddGroup("/libraries", LibrariesRoutes)
+	customRouter.AddGroup("/vpn-servers", VpnServersRoutes)
 	//customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
 	DocsRoutes(customRouter)
 

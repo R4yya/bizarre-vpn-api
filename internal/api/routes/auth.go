@@ -12,6 +12,7 @@ func AuthRoutes(customRouter *CustomRouter) {
 		LnkUserProviderStorage: customRouter.storage.LnkUserProviderStorage,
 	}
 
-	customRouter.routerGroup.POST("/refresh-tokens", authHandler.RefreshTokens)
+	customRouter.routerGroup.POST("/credentials", authHandler.AuthorizeWithCredentials)
 	customRouter.routerGroup.POST("/telegram-init-data", authHandler.AuthorizeWithInitData)
+	customRouter.routerGroup.POST("/refresh-tokens", authHandler.RefreshTokens)
 }

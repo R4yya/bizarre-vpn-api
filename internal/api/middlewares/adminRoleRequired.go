@@ -4,7 +4,7 @@ import (
 	"bizarre-vpn-api/internal/api/handlers"
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/storage/models"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -27,8 +27,8 @@ func AdminRoleRequired(log *slog.Logger) gin.HandlerFunc {
 			return
 		}
 
-		if tokenInfo.Role != services.UserAdminRole {
-			msg := fmt.Sprintf("role matching error, needed role is %v", services.UserAdminRole)
+		if tokenInfo.Role != models.UserRoleAdmin {
+			msg := fmt.Sprintf("role matching error, needed role is %v", models.UserRoleAdmin)
 			log.Info(msg, slog.String("role", tokenInfo.Role))
 			c.JSON(http.StatusForbidden, handlers.ErrorResponse{Error: msg})
 			c.Abort()

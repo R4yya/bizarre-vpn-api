@@ -25,6 +25,8 @@ type LibrariesHandler struct {
 // @Tags Libraries
 // @Produce json
 // @Success 200 {object} []models.LibraryItem "LibraryItems"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /libraries/backend-types [get]
 func (h *LibrariesHandler) GetBackendTypesList(c *gin.Context) {
@@ -54,6 +56,8 @@ func (h *LibrariesHandler) GetBackendTypesList(c *gin.Context) {
 // @Tags Libraries
 // @Produce json
 // @Success 200 {object} []models.LibraryItem "LibraryItems"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /libraries/protocols [get]
 func (h *LibrariesHandler) GetProtocolsList(c *gin.Context) {
@@ -85,6 +89,8 @@ func (h *LibrariesHandler) GetProtocolsList(c *gin.Context) {
 // @Produce json
 // @Success 200 {object} []models.LibraryItem "LibraryItems"
 // @Failure 404 {object} ErrorResponse "BackendTypeId is not exist"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /libraries/protocols-by-backend-type-id [get]
 func (h *LibrariesHandler) GetProtocolsListByBackendTypeId(c *gin.Context) {
