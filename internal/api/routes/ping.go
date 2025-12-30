@@ -5,5 +5,5 @@ import (
 )
 
 func PingRoute(customRouter *CustomRouter) {
-	customRouter.routerGroup.GET("/", handlers.PingHandler)
+	customRouter.routerGroup.GET("", handlers.PingHandler)
 }
