@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,12 +10,19 @@ import (
 )
 
 func DocsRoutes(customRouter *CustomRouter) {
-	customRouter._router.GET("/", func(c *gin.Context) {
-		c.Redirect(http.StatusPermanentRedirect, "/swagger/index.html")
+	baseUrl := customRouter.cfg.HttpServer.BaseURL
+
+	redirectUrl := baseUrl + "/swagger/index.html"
+	customRouter.log.Debug("redirect swagger url", slog.String("redirectUrl", redirectUrl))
+
+	customRouter._router.GET("", func(c *gin.Context) {
+
+		c.Redirect(http.StatusTemporaryRedirect, redirectUrl)
 	})
+
 	customRouter._router.Static("/docs", "./docs")
 	customRouter._router.GET("/swagger/*any", ginSwagger.WrapHandler(
 		swaggerFiles.Handler,
-		ginSwagger.URL("/docs/swagger.json"),
+		ginSwagger.URL(baseUrl+"/docs/swagger.json"),
 	))
 }

@@ -1,13 +1,10 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
-)
 
-type MessageResponse struct {
-	Message string `json:"message"`
-}
+	"github.com/gin-gonic/gin"
+)
 
 // PingHandler responds to requests to /ping
 // @Summary Checking server availability

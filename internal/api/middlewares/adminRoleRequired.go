@@ -1,6 +1,7 @@
 package middlewares
 
 import (
+	"bizarre-vpn-api/internal/api/handlers"
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
@@ -21,7 +22,7 @@ func AdminRoleRequired(log *slog.Logger) gin.HandlerFunc {
 
 		if err != nil {
 			log.Info("getting token info error", sl.Err(err))
-			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return
 		}
@@ -29,7 +30,7 @@ func AdminRoleRequired(log *slog.Logger) gin.HandlerFunc {
 		if tokenInfo.Role != services.UserAdminRole {
 			msg := fmt.Sprintf("role matching error, needed role is %v", services.UserAdminRole)
 			log.Info(msg, slog.String("role", tokenInfo.Role))
-			c.JSON(http.StatusForbidden, gin.H{"error": msg})
+			c.JSON(http.StatusForbidden, handlers.ErrorResponse{Error: msg})
 			c.Abort()
 			return
 		}

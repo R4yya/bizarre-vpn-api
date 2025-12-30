@@ -25,6 +25,7 @@ type Config struct {
 
 type HttpServer struct {
 	Port         int           `yaml:"port" env-required:"true"`
+	BaseURL      string        `yaml:"baseURL"`
 	Timeout      time.Duration `yaml:"timeout" env-required:"true"`
 	IdleTimeout  time.Duration `yaml:"idle_timeout" env-required:"true"`
 	AllowOrigins []string      `yaml:"allow_origins" env-required:"true"`

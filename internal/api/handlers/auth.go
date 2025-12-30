@@ -49,8 +49,8 @@ func setNewRefreshToken(c *gin.Context, refreshToken string) {
 // @Produce json
 // @Param initDataStr body InitDataRequestData true "telegram user initData string"
 // @Success 200 {object} AuthResponse "Success generate new pair of tokens"
-// @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
-// @Failure 500 {object} MessageResponse "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid request or missing required parameters"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /users/auth/telegram-init-data [post]
 func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 	const op = "handlers.auth.AuthorizeWithInitData"
@@ -62,7 +62,7 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 	var req InitDataRequestData
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 
 	if err != nil {
 		log.Info("ValidateInitData err", sl.Err(err))
-		c.JSON(http.StatusBadRequest, MessageResponse{Message: "ValidateInitData error"})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "ValidateInitData error"})
 		return
 	}
 
@@ -89,7 +89,7 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 
 	if err != nil {
 		log.Error(fmt.Sprintf("%v: %v", op, "AuthorizeByTelegram"), sl.Err(err))
-		c.JSON(http.StatusInternalServerError, MessageResponse{Message: "error: internal server error, try again later"})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "internal server error, try again later"})
 		return
 	}
 
@@ -107,8 +107,8 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 // @Tags Users Auth
 // @Produce json
 // @Success 200 {object} AuthResponse "Success generate new pair of tokens"
-// @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
-// @Failure 500 {object} MessageResponse "Internal server error"
+// @Failure 400 {object} ErrorResponse "Invalid request or missing required parameters"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /users/auth/refresh-tokens [post]
 func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 	const op = "handlers.auth.RefreshTokens"
@@ -120,7 +120,7 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 	tokenInfo, token, err := helpers.ParseTokenFromCookie(c, log, RefreshTokenCookieKey, ah.CFG.JWT.RefreshSecretKey)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		c.Abort()
 		return
 	}
@@ -131,7 +131,7 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 	user, err := userService.GetUserById(tokenInfo.UserID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		c.Abort()
 		return
 	}
@@ -149,7 +149,7 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 	if err != nil {
 		err := fmt.Errorf("getting user error: %w", err)
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 		c.Abort()
 		return
 	}

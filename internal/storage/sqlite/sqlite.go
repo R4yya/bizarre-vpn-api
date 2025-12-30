@@ -7,20 +7,30 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 
+	"bizarre-vpn-api/internal/lib/fs"
 	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/storage/models"
 )
 
 type Database = *sqlx.DB
 
 type Storage struct {
-	db                      Database
-	SubscriptionPlanStorage *SubscriptionPlanStorage
-	UserStorage             *UserStorage
-	LnkUserProviderStorage  *LnkUserProviderStorage
+	db                              Database
+	SubscriptionPlanStorage         *SubscriptionPlanStorage
+	UserStorage                     *UserStorage
+	LnkUserProviderStorage          *LnkUserProviderStorage
+	BackendTypesStorage             *LibraryItemStorage
+	ProtocolsStorage                *LibraryItemStorage
+	LnkProtocolsBackendTypesStorage *LnkProtocolsBackendTypesStorage
 }
 
 func MustInit(dbPath string, log *slog.Logger) *Storage {
 	const op = "storage.sqlite.New"
+
+	err := fs.CheckOrMakeDir(dbPath)
+	if err != nil {
+		log.Error("checkOrMakeDir err", sl.Err(fmt.Errorf("%v: %w", op, err)))
+	}
 
 	db, err := sqlx.Connect("sqlite", dbPath)
 	if err != nil {
@@ -44,11 +54,40 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 	subscriptionPlanStorage := &SubscriptionPlanStorage{db}
 	subscriptionPlanStorage.MustInit()
 
+	protocolsStorage := NewLibraryItemStorage(
+		db,
+		"protocols",
+		&[]models.LibraryItem{
+			{
+				ID:   1,
+				Name: "vless",
+			},
+		},
+	)
+
+	backendTypesStorage := NewLibraryItemStorage(
+		db,
+		"backend_types",
+		&[]models.LibraryItem{
+			{
+				ID:   1,
+				Name: "3xUI",
+			},
+		},
+	)
+
+	lnkProtocolsBackendTypesStorage := &LnkProtocolsBackendTypesStorage{db}
+
+	lnkProtocolsBackendTypesStorage.MustInit()
+
 	storage := &Storage{
-		db:                      db,
-		SubscriptionPlanStorage: subscriptionPlanStorage,
-		UserStorage:             userStorage,
-		LnkUserProviderStorage:  lnkUserProviderStorage,
+		db:                              db,
+		SubscriptionPlanStorage:         subscriptionPlanStorage,
+		UserStorage:                     userStorage,
+		LnkUserProviderStorage:          lnkUserProviderStorage,
+		BackendTypesStorage:             backendTypesStorage,
+		ProtocolsStorage:                protocolsStorage,
+		LnkProtocolsBackendTypesStorage: lnkProtocolsBackendTypesStorage,
 	}
 
 	return storage

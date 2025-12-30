@@ -31,9 +31,9 @@ type UserAuthorizationRequest struct {
 // @Tags Users
 // @Produce json
 // @Success 200 {object} []models.BaseUser "Users Data"
-// @Failure 401 {object} MessageResponse "Unauthorized"
-// @Failure 403 {object} MessageResponse "Forbidden"
-// @Failure 500 {object} MessageResponse "Internal server error"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 403 {object} ErrorResponse "Forbidden"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /users/list [get]
 func (h *UserHandler) GetUsersListHandler(c *gin.Context) {
 	const op = "handlers.user.GetUsersListHandler"
@@ -46,7 +46,7 @@ func (h *UserHandler) GetUsersListHandler(c *gin.Context) {
 
 	if err != nil {
 		log.Error("getting usersList error", sl.Err(err))
-		c.JSON(http.StatusInternalServerError, MessageResponse{Message: "something went wrong try again later"})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "something went wrong try again later"})
 		return
 	}
 
@@ -60,8 +60,8 @@ func (h *UserHandler) GetUsersListHandler(c *gin.Context) {
 // @Tags Users
 // @Produce json
 // @Success 200 {object} models.BaseUser "User Data"
-// @Failure 401 {object} MessageResponse "Unauthorized"
-// @Failure 500 {object} MessageResponse "Internal server error"
+// @Failure 401 {object} ErrorResponse "Unauthorized"
+// @Failure 500 {object} ErrorResponse "Internal server error"
 // @Router /users [get]
 func (h *UserHandler) GetUserDataHandler(c *gin.Context) {
 	const op = "handlers.user.GetUserInfo"
@@ -75,7 +75,7 @@ func (h *UserHandler) GetUserDataHandler(c *gin.Context) {
 	if err != nil {
 		log.Error("getting token info error", sl.Err(err))
 
-		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 		return
 	}
 
@@ -86,65 +86,8 @@ func (h *UserHandler) GetUserDataHandler(c *gin.Context) {
 	if err != nil {
 		log.Error("getting user error", sl.Err(err))
 
-		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 	}
 
 	c.JSON(http.StatusOK, user)
 }
-
-// AuthorizeUserHandler processes the user authorization request
-// @Summary User authorization
-// @Description Authorize a user and register if it is not already in the database
-// @Tags Users
-// @Accept json
-// @Produce json
-// @Param user body UserAuthorizationRequest true "User Information"
-// @Success 200 {object} models.User "The user authorized"
-// @Success 201 {object} models.User "A new user has been successfully created"
-// @Failure 400 {object} MessageResponse "Invalid request or missing required parameters"
-// @Failure 409 {object} MessageResponse "User with this Telegram ID already exists"
-// @Failure 500 {object} MessageResponse "Internal server error"
-// @Router /users/auth [post]
-// func (h *UserHandler) AuthorizeUserHandler(c *gin.Context) {
-// 	const op = "handlers.user.AuthorizeUserHandler"
-
-// 	log := h.Log.With(
-// 		slog.String("op", op),
-// 	)
-
-// 	var req UserAuthorizationRequest
-
-// 	if err := c.ShouldBindJSON(&req); err != nil {
-// 		c.JSON(http.StatusBadRequest, MessageResponse{Message: err.Error()})
-// 		return
-// 	}
-
-// 	existingUser, err := h.userService.GetUser(req.TelegramID)
-// 	if err == nil && existingUser != nil {
-// 		c.JSON(http.StatusOK, existingUser)
-// 		return
-// 	}
-
-// 	user := &models.User{
-// 		TelegramID:   req.TelegramID,
-// 		Username:     req.Username,
-// 		LanguageCode: req.LanguageCode,
-// 		IsBot:        req.IsBot,
-// 	}
-
-// 	userID, err := h.userService.RegisterUser(user)
-// 	if err != nil {
-// 		if errors.Is(err, storage.ErrUserAlreadyExists) {
-// 			log.Info("user not found", sl.Err(err))
-// 			c.JSON(http.StatusConflict, MessageResponse{Message: err.Error()})
-// 			return
-// 		}
-// 		log.Error("registration user error", sl.Err(err))
-// 		c.JSON(http.StatusInternalServerError, MessageResponse{Message: err.Error()})
-// 		return
-// 	}
-
-// 	user.ID = userID
-
-// 	c.JSON(http.StatusCreated, user)
-// }
