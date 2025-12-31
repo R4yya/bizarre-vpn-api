@@ -6,6 +6,7 @@ import (
 	"bizarre-vpn-api/internal/lib/initData"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/services/userService"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -32,7 +33,7 @@ type InitDataRequestData struct {
 }
 
 type CredentialRequestData struct {
-	Username string
+	Login    string
 	Password string
 }
 
@@ -72,7 +73,7 @@ func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
 		return
 	}
 
-	initDataPayload, err := initData.ValidateInitData(req.InitDataStr, ah.CFG.TelegramBotToken, time.Hour)
+	initDataPayload, err := initData.ValidateInitData(req.InitDataStr, ah.CFG.TelegramBot.BotToken, time.Hour)
 
 	if err != nil {
 		log.Info("ValidateInitData err", sl.Err(err))
@@ -140,7 +141,7 @@ func (ah *AuthHandler) AuthorizeWithCredentials(c *gin.Context) {
 	)
 
 	accessToken, refreshToken, err := authService.AuthorizeByCredentials(
-		req.Username,
+		req.Login,
 		req.Password,
 		[]byte(ah.CFG.JWT.AccessSecretKey),
 		[]byte(ah.CFG.JWT.RefreshSecretKey),
@@ -192,7 +193,7 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 		return
 	}
 
-	userService := services.NewUserService(log, ah.UserStorage)
+	userService := userService.NewUserService(log, ah.UserStorage)
 
 	log.Debug("Getting user by userId from token", slog.Int64("userId", tokenInfo.UserID))
 	user, err := userService.GetUserById(tokenInfo.UserID)

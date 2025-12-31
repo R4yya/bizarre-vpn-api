@@ -14,13 +14,17 @@ const (
 	EnvProd  = "prod"
 )
 
+type TelegramBotCfg struct {
+	BotToken string `yaml:"bot_token" env-required:"true"`
+}
+
 type Config struct {
-	Env              string     `yaml:"env" env-required:"true"`
-	StoragePath      string     `yaml:"storage_path" env-required:"true"`
-	TelegramBotToken string     `yaml:"telegram_bot_token" env-required:"true"`
-	WebAppUrl        string     `yaml:"web_app_url" env-required:"true"`
-	JWT              JWT        `yaml:"jwt" env-required:"true"`
-	HttpServer       HttpServer `yaml:"http_server" env-required:"true"`
+	Env         string         `yaml:"env" env-required:"true"`
+	StoragePath string         `yaml:"storage_path" env-required:"true"`
+	TelegramBot TelegramBotCfg `yaml:"telegram_bot" env-required:"true"`
+	WebAppUrl   string         `yaml:"web_app_url" env-required:"true"`
+	JWT         JWT            `yaml:"jwt" env-required:"true"`
+	HttpServer  HttpServer     `yaml:"http_server" env-required:"true"`
 }
 
 type HttpServer struct {

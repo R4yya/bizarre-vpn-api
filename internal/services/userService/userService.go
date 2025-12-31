@@ -1,28 +1,34 @@
-package services
+package userService
 
 import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"unicode/utf8"
 
 	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	ErrorUserServiceInvalidPassword = errors.New("user password is invalid")
+	ErrInvalidPassword = errors.New("user password is invalid")
+	ErrIncorrectRole   = errors.New("role is incorrect")
+	ErrLoginIsTooSmall = errors.New("login is too small")
+	ErrLoginOccupied   = errors.New("user with this login already exist")
 )
 
 type UserService struct {
 	log         *slog.Logger
-	userStorage UserStorage
+	userStorage services.UserStorage
 }
 
 func NewUserService(
 	log *slog.Logger,
-	userStorage UserStorage,
+	userStorage services.UserStorage,
 ) *UserService {
 	return &UserService{
 		log:         log,
@@ -55,22 +61,46 @@ func (s *UserService) GetUserById(ID int64) (*models.BaseUser, error) {
 func (s *UserService) CreateUser(payload *models.CreateUserPayload) (*models.BaseUser, error) {
 	const op = "internal.services.userService.CreateUser"
 
-	if payload.Password != "" {
-		//TODO: need to validate input password with error ErrorUserServiceInvalidPassword
+	log := s.log.With(
+		slog.String("op", op),
+	)
 
-		// Хэшируем пароль
-		passwordHash, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
+	log.Debug("CreateUser start")
+
+	if payload.Role != models.UserRoleClient && payload.Role != models.UserRoleAdmin {
+		return nil, ErrIncorrectRole
+	}
+
+	if payload.Login != nil {
+		if utf8.RuneCountInString(*payload.Login) < 5 {
+			return nil, ErrLoginIsTooSmall
+		}
+	}
+
+	if payload.Password != nil {
+		//TODO: add more strange password validation
+		if utf8.RuneCountInString(*payload.Password) < 5 {
+			return nil, ErrInvalidPassword
+		}
+
+		passwordHash, err := bcrypt.GenerateFromPassword([]byte(*payload.Password), bcrypt.DefaultCost)
 
 		if err != nil {
 			return nil, fmt.Errorf("%v: hashing password error: %w", op, err)
 		}
 
-		payload.Password = string(passwordHash)
+		stringHash := string(passwordHash)
+
+		payload.Password = &stringHash
 	}
 
 	user, err := s.userStorage.CreateUser(payload, nil)
 
 	if err != nil {
+		if errors.Is(err, storage.ErrLoginOccupied) {
+			return nil, ErrLoginOccupied
+		}
+
 		return nil, fmt.Errorf("%v: create user error: %w", op, err)
 	}
 
@@ -97,9 +127,12 @@ func (s *UserService) CreateDefaultUser() {
 		return
 	}
 
+	defaultUserLogin := "admin"
+
 	defaultUserPayload := &models.CreateUserPayload{
-		Username: "admin",
-		Password: "admin",
+		Username: "Default admin user",
+		Login:    &defaultUserLogin,
+		Password: &defaultUserLogin,
 		Role:     models.UserRoleAdmin,
 	}
 

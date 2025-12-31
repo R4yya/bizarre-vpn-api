@@ -7,12 +7,14 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"bizarre-vpn-api/internal/api/middlewares"
+	"bizarre-vpn-api/internal/bot"
 	"bizarre-vpn-api/internal/config"
 	"bizarre-vpn-api/internal/storage/sqlite"
 )
 
-func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage) *gin.Engine {
-	customRouter := SetupCustomRouter(log, cfg, storage)
+func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage, botSharedData *bot.BotSharedData) *gin.Engine {
+	customRouter := SetupCustomRouter(log, cfg, storage, botSharedData)
+
 	gin.SetMode(gin.ReleaseMode)
 
 	customRouter._router.Use(middlewares.RequestsLogger(log))

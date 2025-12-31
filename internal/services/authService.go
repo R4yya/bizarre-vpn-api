@@ -20,17 +20,6 @@ var (
 
 const telegramProviderName string = "telegram"
 
-type LnkUserProviderStorage interface {
-	GetItemByType(
-		providerType string,
-		externalId string,
-	) (LnkUserProvider *models.LnkUserProvider, isFound bool, Err error)
-	CreateLnkUserProvider(
-		lnkUserProvider *models.LnkUserProvider,
-		username string,
-	) (providerId int64, createdUser *models.BaseUser, Err error)
-}
-
 type AuthService struct {
 	log                    *slog.Logger
 	userStorage            UserStorage
@@ -166,14 +155,14 @@ func (au *AuthService) AuthorizeByTelegram(
 }
 
 func (au *AuthService) AuthorizeByCredentials(
-	username string,
+	login string,
 	password string,
 	accessSecretKey []byte,
 	refreshSecretKey []byte,
 ) (accessToken string, refreshToken string, Err error) {
 	op := "internal.services.auth.AuthorizeByCredentials"
 
-	user, err := au.userStorage.GetUserByUsername(username)
+	user, err := au.userStorage.GetUserByLogin(login)
 
 	if err != nil {
 		if errors.Is(err, storage.ErrUserNotFound) {

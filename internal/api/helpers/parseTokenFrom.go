@@ -73,6 +73,8 @@ func parseTokenFrom(
 
 	tokenInfo, err := jwt.ParseToken(token, []byte(jwtSecretKey))
 
+	log.Debug("parseFromToken", slog.Any("tokenInfo", tokenInfo))
+
 	if err != nil {
 		log.Error(fmt.Sprintf("%v token parse error", tokenKeyName), sl.Err(err))
 

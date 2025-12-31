@@ -58,6 +58,20 @@ func (s *LnkUserProviderStorage) GetItemByType(
 	return lnkUserProvider, true, nil
 }
 
+func (s *LnkUserProviderStorage) GetListByUserId(userId int64) (*[]models.LnkUserProvider, error) {
+	query := `SELECT * FROM lnk_user_providers WHERE user_id = ?`
+
+	var list []models.LnkUserProvider
+
+	err := s.db.Select(&list, query, userId)
+
+	if err != nil {
+		return nil, fmt.Errorf("getting user providers error: %w", err)
+	}
+
+	return &list, nil
+}
+
 func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 	lnkUserProvider *models.LnkUserProvider,
 	username string,
@@ -70,7 +84,7 @@ func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 
 	createUserPayload := &models.CreateUserPayload{
 		Username: username,
-		Role:     models.UserRoleBasic,
+		Role:     models.UserRoleClient,
 	}
 
 	user, err := s.userStorage.CreateUser(createUserPayload, tx)
