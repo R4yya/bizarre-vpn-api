@@ -15,6 +15,7 @@ var (
 
 	// ErrUserAlreadyExists occurs if a user with the specified Telegram ID already exists
 	ErrUserAlreadyExists = errors.New("user with this Telegram ID already exists")
+	ErrLoginOccupied     = errors.New("user with this login already exist")
 )
 
 // Subscription plans errors
@@ -27,4 +28,10 @@ var (
 
 var (
 	ErrVpnServerNotFound = errors.New("vpn server not found")
+)
+
+// AuthLinks
+
+var (
+	ErrAuthLinkNotFound = errors.New("auth link not found")
 )

@@ -23,6 +23,7 @@ type Storage struct {
 	ProtocolsStorage                *LibraryItemStorage
 	LnkProtocolsBackendTypesStorage *LnkProtocolsBackendTypesStorage
 	VpnServersStorage               *VpnServersStorage
+	AuthLinksStorage                *AuthLinksStorage
 }
 
 func MustInit(dbPath string, log *slog.Logger) *Storage {
@@ -50,7 +51,6 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 
 	lnkUserProviderStorage := &LnkUserProviderStorage{
 		db,
-		userStorage,
 	}
 	lnkUserProviderStorage.MustInit()
 
@@ -87,6 +87,10 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 
 	vpnServersStorage.MustInit()
 
+	authLinksStorage := &AuthLinksStorage{db}
+
+	authLinksStorage.MustInit()
+
 	storage := &Storage{
 		db:                              db,
 		SubscriptionPlanStorage:         subscriptionPlanStorage,
@@ -96,6 +100,7 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 		ProtocolsStorage:                protocolsStorage,
 		LnkProtocolsBackendTypesStorage: lnkProtocolsBackendTypesStorage,
 		VpnServersStorage:               vpnServersStorage,
+		AuthLinksStorage:                authLinksStorage,
 	}
 
 	return storage

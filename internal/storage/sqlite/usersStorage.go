@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
@@ -19,6 +20,7 @@ func (u *UserStorage) MustInit() {
 	query := `CREATE TABLE IF NOT EXISTS users(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		username TEXT NOT NULL,
+		login TEXT UNIQUE,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 		role VARCHAR(255),
@@ -41,6 +43,7 @@ func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
 	query := `SELECT 
 	id,
 	username,
+	login,
 	role,
 	created_at,
 	updated_at 
@@ -71,6 +74,7 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 	query := `SELECT 
 	id,
 	username,
+	login,
 	role,
 	created_at,
 	updated_at 
@@ -86,17 +90,18 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 	return &user.BaseUser, nil
 }
 
-func (u *UserStorage) GetUserByUsername(userName string) (*models.BaseUser, error) {
+func (u *UserStorage) GetUserByLogin(login string) (*models.BaseUser, error) {
 	var user models.FullUser
 
 	query := `SELECT 
 	id,
 	username,
+	login,
 	role,
 	created_at,
 	updated_at 
-	FROM users WHERE username = ?`
-	err := u.db.Get(&user, query, userName)
+	FROM users WHERE login = ?`
+	err := u.db.Get(&user, query, login)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -144,13 +149,14 @@ func (u *UserStorage) CreateUser(
 	}
 
 	query := `
-    INSERT INTO users (username, refresh_token, role, password)
-    VALUES (:username, :refresh_token, :role, :password)`
+    INSERT INTO users (login, username, refresh_token, role, password)
+    VALUES (:login, :username, :refresh_token, :role, :password)`
 
 	rows, err := sqlx.NamedQuery(
 		executor,
 		query,
 		map[string]interface{}{
+			"login":         payload.Login,
 			"username":      user.Username,
 			"refresh_token": user.RefreshToken,
 			"role":          user.Role,
@@ -159,10 +165,16 @@ func (u *UserStorage) CreateUser(
 	)
 
 	if err != nil {
+		if strings.Contains(err.Error(), "UNIQUE constraint failed: users.login") {
+			return nil, storage.ErrLoginOccupied
+		}
+
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	defer rows.Close()
+
+	var createdUser models.BaseUser
 
 	if rows.Next() {
 		err = rows.StructScan(&user)
@@ -172,7 +184,7 @@ func (u *UserStorage) CreateUser(
 		}
 	}
 
-	return &user.BaseUser, nil
+	return &createdUser, nil
 }
 
 func (u *UserStorage) GetUserRefreshToken(ID int64) (string, error) {

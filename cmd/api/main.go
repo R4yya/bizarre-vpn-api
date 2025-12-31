@@ -9,7 +9,7 @@ import (
 	"bizarre-vpn-api/internal/config"
 	slogWrapper "bizarre-vpn-api/internal/lib/logger"
 	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/services/userService"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
@@ -40,7 +40,7 @@ func main() {
 
 	storage := cStorage.MustInit(cfg.StoragePath, log)
 
-	userService := services.NewUserService(
+	userService := userService.NewUserService(
 		log,
 		storage.UserStorage,
 	)
@@ -60,12 +60,25 @@ func main() {
 
 	log.Info("database initialized successful")
 
-	bot := botInternal.MustInitBot(log, cfg.TelegramBotToken, cfg, storage)
+	bot := botInternal.MustInitBot(log, cfg.TelegramBot.BotToken, cfg, storage)
 
 	go bot.Start()
+
+	log.Info("bot data",
+		slog.String("username", bot.Me.Username),
+		slog.String("firstname", bot.Me.FirstName),
+		slog.String("lastname", bot.Me.LastName),
+	)
+
+	botSharedData := &botInternal.BotSharedData{
+		Username: bot.Me.Username,
+	}
+
 	log.Info("TG bot successfully started")
 
-	r := routes.SetupRouter(log, cfg, storage)
+	log.Debug("botSharedData", slog.Any("botSharedData", botSharedData))
+
+	r := routes.SetupRouter(log, cfg, storage, botSharedData)
 
 	log.Info("API successfully started")
 

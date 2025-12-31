@@ -1,32 +1,35 @@
 package bot
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
+	"unicode/utf8"
 
 	tele "gopkg.in/telebot.v4"
 
 	"bizarre-vpn-api/internal/config"
 	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/services/authLinkService"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
 func registerHandlers(b *tele.Bot, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) {
 	b.Handle("/start", func(c tele.Context) error {
-		return handleStart(c, cfg.WebAppUrl, log)
+		return handleStart(c, cfg.WebAppUrl, log, storage)
 	})
 
-	b.Handle("/auth", func(c tele.Context) error {
-		return handleAuth(c, cfg, log, storage)
-	})
+	// b.Handle("/auth", func(c tele.Context) error {
+	// 	return handleAuth(c, cfg, log, storage)
+	// })
 
 	b.Handle(tele.OnText, func(c tele.Context) error {
-		return c.Send("Извините, я понимаю только команды /start или /auth.")
+		return c.Send("Извините, я понимаю только команду /start.")
 	})
 }
 
-func handleStart(c tele.Context, webAppUrl string, log *slog.Logger) error {
+func handleStart(c tele.Context, webAppUrl string, log *slog.Logger, storage *cStorage.Storage) error {
 	op := "internal.bot.handlers.handleStart"
 
 	log = log.With(slog.String("op", op))
@@ -35,58 +38,88 @@ func handleStart(c tele.Context, webAppUrl string, log *slog.Logger) error {
 
 	if teleUser.IsBot {
 		log.Info("bot user request denied")
-		_ = c.Send("Извините, мы не работает с ботами")
+		return c.Send("Извините, мы не работаем с ботами")
 	}
 
-	webApp := tele.WebApp{URL: webAppUrl}
-	btn := tele.InlineButton{Text: "Открыть BizarreVPN", WebApp: &webApp}
+	payload := c.Message().Payload
 
-	inlineKeyboard := [][]tele.InlineButton{
-		{btn},
+	if payload == "" || utf8.RuneCountInString(payload) != authLinkService.LinkUserCodeLength {
+		return c.Send("Запросите инвайт ссылку у представителя bizarre")
 	}
 
-	return c.Send("Нажми на кнопку, чтобы открыть Mini App.", &tele.ReplyMarkup{
-		InlineKeyboard: inlineKeyboard,
-	})
-}
+	authLinkServiceInstance := authLinkService.NewAuthLinksService(log, storage.AuthLinksStorage, storage.LnkUserProviderStorage)
 
-func handleAuth(c tele.Context, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) error {
-	op := "internal.bot.handlers.handleAuth"
+	preparedExternalId := strconv.Itoa(int(teleUser.ID))
 
-	log = log.With(slog.String("op", op))
-
-	teleUser := c.Sender()
-
-	if teleUser.IsBot {
-		log.Info("bot user request denied")
-		_ = c.Send("Извините, мы не работает с ботами")
-	}
-
-	log.Debug("telegram user data",
-		slog.Int64("teleUser.ID", teleUser.ID),
-		slog.String("teleUser.Username", teleUser.Username),
-	)
-
-	authService := services.NewAuthService(
-		log,
-		storage.UserStorage,
-		storage.LnkUserProviderStorage,
-	)
-	accessToken, refreshToken, err := authService.AuthorizeByTelegram(
-		teleUser.ID,
-		teleUser.Username,
-		[]byte(cfg.JWT.AccessSecretKey),
-		[]byte(cfg.JWT.RefreshSecretKey),
-	)
+	userId, err := authLinkServiceInstance.LinkUserWithTgProviderByCode(payload, preparedExternalId)
 
 	if err != nil {
-		log.Error(op, sl.Err(err))
-		_ = c.Send("Произошла непредвиденная ошибка, попробуйте ещё раз")
+		if errors.Is(err, authLinkService.ErrUserAlreadyLinked) {
+			return c.Send("Ваш аккаунт уже привязан")
+		}
 
-		return nil
+		if errors.Is(err, authLinkService.ErrAuthLinkNotFound) {
+			return c.Send("Ссылка не действительна")
+		}
+
+		log.Error("linking tg acc to user error", sl.Err(err))
+
+		return c.Send("Что то пошло не так.")
 	}
 
-	mes := fmt.Sprintf("Добро пожаловать, %v! \n\n%v \n\n%v", teleUser.FirstName, accessToken, refreshToken)
+	// webApp := tele.WebApp{URL: webAppUrl}
+	// btn := tele.InlineButton{Text: "Открыть BizarreVPN", WebApp: &webApp}
 
-	return c.Send(mes)
+	// inlineKeyboard := [][]tele.InlineButton{
+	// 	{btn},
+	// }
+
+	message := fmt.Sprintf("Вы успешно привязали аккаунт. userId: %d", userId)
+
+	return c.Send(message)
+
+	// return c.Send("Нажми на кнопку, чтобы открыть Mini App.", &tele.ReplyMarkup{
+	// 	InlineKeyboard: inlineKeyboard,
+	// })
 }
+
+// func handleAuth(c tele.Context, cfg *config.Config, log *slog.Logger, storage *cStorage.Storage) error {
+// 	op := "internal.bot.handlers.handleAuth"
+
+// 	log = log.With(slog.String("op", op))
+
+// 	teleUser := c.Sender()
+
+// 	if teleUser.IsBot {
+// 		log.Info("bot user request denied")
+// 		_ = c.Send("Извините, мы не работает с ботами")
+// 	}
+
+// 	log.Debug("telegram user data",
+// 		slog.Int64("teleUser.ID", teleUser.ID),
+// 		slog.String("teleUser.Username", teleUser.Username),
+// 	)
+
+// 	authService := services.NewAuthService(
+// 		log,
+// 		storage.UserStorage,
+// 		storage.LnkUserProviderStorage,
+// 	)
+// 	accessToken, refreshToken, err := authService.AuthorizeByTelegram(
+// 		teleUser.ID,
+// 		teleUser.Username,
+// 		[]byte(cfg.JWT.AccessSecretKey),
+// 		[]byte(cfg.JWT.RefreshSecretKey),
+// 	)
+
+// 	if err != nil {
+// 		log.Error(op, sl.Err(err))
+// 		_ = c.Send("Произошла непредвиденная ошибка, попробуйте ещё раз")
+
+// 		return nil
+// 	}
+
+// 	mes := fmt.Sprintf("Добро пожаловать, %v! \n\n%v \n\n%v", teleUser.FirstName, accessToken, refreshToken)
+
+// 	return c.Send(mes)
+// }

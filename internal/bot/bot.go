@@ -12,6 +12,10 @@ import (
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
+type BotSharedData struct {
+	Username string
+}
+
 func MustInitBot(
 	log *slog.Logger,
 	botToken string,
