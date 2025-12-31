@@ -123,6 +123,8 @@ func (s *UserService) CreateDefaultUser() {
 		return
 	}
 
+	log.Debug("len(*usersList)", slog.Any("len(*usersList)", len(*usersList)))
+
 	if len(*usersList) != 0 {
 		return
 	}

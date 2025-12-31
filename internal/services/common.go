@@ -24,7 +24,7 @@ type LnkUserProviderStorage interface {
 	GetListByUserId(userId int64) (*[]models.LnkUserProvider, error)
 
 	CreateLnkUserProvider(
-		lnkUserProvider *models.LnkUserProvider,
-		username string,
-	) (providerId int64, createdUser *models.BaseUser, Err error)
+		createLnkUserProviderPayload *models.CreateLnkUserProviderPayload,
+		executor storage.Executor,
+	) (*models.LnkUserProvider, error)
 }

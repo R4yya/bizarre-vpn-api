@@ -3,7 +3,6 @@ package handlers
 import (
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/config"
-	"bizarre-vpn-api/internal/lib/initData"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
 	"bizarre-vpn-api/internal/services/userService"
@@ -48,65 +47,65 @@ func setNewRefreshToken(c *gin.Context, refreshToken string) {
 	c.Writer.Header().Set("Set-Cookie", fmt.Sprintf("%v=%v; Path=/; Domain=; Secure; HttpOnly; SameSite=None; Max-Age=%v; Expires=%v", RefreshTokenCookieKey, tokenString, maxAge, expirationTime))
 }
 
-// AuthorizeWithInitData processes the user authorization with telegram initData
-// @Summary User authorization
-// @Description Authorize a user and register if it is not already in the database
-// @Tags Users Auth
-// @Accept json
-// @Produce json
-// @Param initDataStr body InitDataRequestData true "telegram user initData string"
-// @Success 200 {object} AuthResponse "Success generate new pair of tokens"
-// @Failure 400 {object} ErrorResponse "Invalid request or missing required parameters"
-// @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /users/auth/telegram-init-data [post]
-func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
-	const op = "handlers.auth.AuthorizeWithInitData"
+// // AuthorizeWithInitData processes the user authorization with telegram initData
+// // @Summary User authorization
+// // @Description Authorize a user and register if it is not already in the database
+// // @Tags Users Auth
+// // @Accept json
+// // @Produce json
+// // @Param initDataStr body InitDataRequestData true "telegram user initData string"
+// // @Success 200 {object} AuthResponse "Success generate new pair of tokens"
+// // @Failure 400 {object} ErrorResponse "Invalid request or missing required parameters"
+// // @Failure 500 {object} ErrorResponse "Internal server error"
+// // @Router /users/auth/telegram-init-data [post]
+// func (ah *AuthHandler) AuthorizeWithInitData(c *gin.Context) {
+// 	const op = "handlers.auth.AuthorizeWithInitData"
 
-	log := ah.Log.With(
-		slog.String("op", op),
-	)
+// 	log := ah.Log.With(
+// 		slog.String("op", op),
+// 	)
 
-	var req InitDataRequestData
+// 	var req InitDataRequestData
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-		return
-	}
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+// 		return
+// 	}
 
-	initDataPayload, err := initData.ValidateInitData(req.InitDataStr, ah.CFG.TelegramBot.BotToken, time.Hour)
+// 	initDataPayload, err := initData.ValidateInitData(req.InitDataStr, ah.CFG.TelegramBot.BotToken, time.Hour)
 
-	if err != nil {
-		log.Info("ValidateInitData err", sl.Err(err))
-		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "ValidateInitData error"})
-		return
-	}
+// 	if err != nil {
+// 		log.Info("ValidateInitData err", sl.Err(err))
+// 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "ValidateInitData error"})
+// 		return
+// 	}
 
-	authService := services.NewAuthService(
-		log,
-		ah.UserStorage,
-		ah.LnkUserProviderStorage,
-	)
+// 	authService := services.NewAuthService(
+// 		log,
+// 		ah.UserStorage,
+// 		ah.LnkUserProviderStorage,
+// 	)
 
-	accessToken, refreshToken, err := authService.AuthorizeByTelegram(
-		initDataPayload.TelegramID,
-		initDataPayload.Username,
-		[]byte(ah.CFG.JWT.AccessSecretKey),
-		[]byte(ah.CFG.JWT.RefreshSecretKey),
-	)
+// 	accessToken, refreshToken, err := authService.AuthorizeByTelegram(
+// 		initDataPayload.TelegramID,
+// 		initDataPayload.Username,
+// 		[]byte(ah.CFG.JWT.AccessSecretKey),
+// 		[]byte(ah.CFG.JWT.RefreshSecretKey),
+// 	)
 
-	if err != nil {
-		log.Error(fmt.Sprintf("%v: %v", op, "AuthorizeByTelegram"), sl.Err(err))
-		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "internal server error, try again later"})
-		return
-	}
+// 	if err != nil {
+// 		log.Error(fmt.Sprintf("%v: %v", op, "AuthorizeByTelegram"), sl.Err(err))
+// 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "internal server error, try again later"})
+// 		return
+// 	}
 
-	setNewRefreshToken(c, refreshToken)
+// 	setNewRefreshToken(c, refreshToken)
 
-	c.JSON(http.StatusOK, AuthResponse{
-		Message:     "Successful authorize with telegram",
-		AccessToken: accessToken,
-	})
-}
+// 	c.JSON(http.StatusOK, AuthResponse{
+// 		Message:     "Successful authorize with telegram",
+// 		AccessToken: accessToken,
+// 	})
+// }
 
 // AuthorizeWithCredentials processes the user authorization with username and password
 // @Summary User authorization

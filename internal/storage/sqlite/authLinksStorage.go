@@ -52,8 +52,6 @@ func (s *AuthLinksStorage) GetItemByCode(code string) (*models.AuthLink, error) 
 func (s *AuthLinksStorage) CreateItem(payload *models.AuthLinkCreatePayload) (*models.AuthLink, error) {
 	query := `INSERT INTO auth_links (user_id, code, status) VALUES (:user_id, :code, :status) RETURNING *`
 
-	fmt.Println("payload", payload)
-
 	rows, err := s.db.NamedQuery(
 		query,
 		payload,

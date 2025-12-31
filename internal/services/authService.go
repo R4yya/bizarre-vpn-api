@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 
 	"bizarre-vpn-api/internal/lib/jwt"
 	"bizarre-vpn-api/internal/lib/logger/sl"
@@ -17,8 +16,6 @@ import (
 var (
 	ErrorAuthServiceIncorrectUsernameOrPass = errors.New("incorrect username or password")
 )
-
-const telegramProviderName string = "telegram"
 
 type AuthService struct {
 	log                    *slog.Logger
@@ -77,82 +74,82 @@ func (au *AuthService) getAuthorizeTokens(
 	return accessToken, refreshToken, nil
 }
 
-func (au *AuthService) authorizeByProvider(
-	providerType string,
-	externalUserId string,
-	username string,
-	accessSecretKey []byte,
-	refreshSecretKey []byte,
-) (accessToken string, refreshToken string, Err error) {
-	op := "internal.services.userService.auth.authorizeByProvider"
+// func (au *AuthService) authorizeByProvider(
+// 	providerType string,
+// 	externalUserId string,
+// 	username string,
+// 	accessSecretKey []byte,
+// 	refreshSecretKey []byte,
+// ) (accessToken string, refreshToken string, Err error) {
+// 	op := "internal.services.userService.auth.authorizeByProvider"
 
-	log := au.log.With(slog.String("op", op))
+// 	log := au.log.With(slog.String("op", op))
 
-	lnkUserProvider, isFound, err := au.lnkUserProviderStorage.GetItemByType(
-		telegramProviderName,
-		externalUserId,
-	)
+// 	lnkUserProvider, isFound, err := au.lnkUserProviderStorage.GetItemByType(
+// 		telegramProviderName,
+// 		externalUserId,
+// 	)
 
-	log.Debug("lnkUserProviderStorage.GetItemByType",
-		slog.Any("lnkUserProvider", lnkUserProvider),
-		slog.Bool("isFound", isFound),
-		slog.String("externalUserId", externalUserId),
-	)
+// 	log.Debug("lnkUserProviderStorage.GetItemByType",
+// 		slog.Any("lnkUserProvider", lnkUserProvider),
+// 		slog.Bool("isFound", isFound),
+// 		slog.String("externalUserId", externalUserId),
+// 	)
 
-	if err != nil {
-		return "", "", fmt.Errorf("%v: %w", op, err)
-	}
+// 	if err != nil {
+// 		return "", "", fmt.Errorf("%v: %w", op, err)
+// 	}
 
-	var user *models.BaseUser
+// 	var user *models.BaseUser
 
-	if !isFound {
-		log.Debug("in not found logic")
-		newLnkUserProvider := &models.LnkUserProvider{
-			ProviderType:   providerType,
-			ExternalUserId: externalUserId,
-		}
+// 	if !isFound {
+// 		log.Debug("in not found logic")
+// 		newLnkUserProvider := &models.LnkUserProvider{
+// 			ProviderType:   providerType,
+// 			ExternalUserId: externalUserId,
+// 		}
 
-		_, user, err = au.lnkUserProviderStorage.CreateLnkUserProvider(newLnkUserProvider, username)
+// 		_, user, err = au.lnkUserProviderStorage.CreateLnkUserProvider(newLnkUserProvider, username)
 
-		log.Debug("CreateLnkUserProvider", slog.Any("user", user))
+// 		log.Debug("CreateLnkUserProvider", slog.Any("user", user))
 
-		if err != nil {
-			return "", "", fmt.Errorf("%v: %w", op, err)
-		}
-	} else {
-		log.Debug("in success found logic")
-		user, err = au.userStorage.GetUserById(lnkUserProvider.UserId, nil)
+// 		if err != nil {
+// 			return "", "", fmt.Errorf("%v: %w", op, err)
+// 		}
+// 	} else {
+// 		log.Debug("in success found logic")
+// 		user, err = au.userStorage.GetUserById(lnkUserProvider.UserId, nil)
 
-		if err != nil {
-			return "", "", fmt.Errorf("%v: %w", op, err)
-		}
-	}
+// 		if err != nil {
+// 			return "", "", fmt.Errorf("%v: %w", op, err)
+// 		}
+// 	}
 
-	log.Debug("authorize logic")
+// 	log.Debug("authorize logic")
 
-	return au.getAuthorizeTokens(
-		user,
-		accessSecretKey,
-		refreshSecretKey,
-	)
-}
+// 	return au.getAuthorizeTokens(
+// 		user,
+// 		accessSecretKey,
+// 		refreshSecretKey,
+// 	)
+// }
 
-func (au *AuthService) AuthorizeByTelegram(
-	telegramId int64,
-	username string,
-	accessSecretKey []byte,
-	refreshSecretKey []byte,
-) (accessToken string, refreshToken string, Err error) {
-	preparedExternalId := strconv.Itoa(int(telegramId))
+// func (au *AuthService) AuthorizeByTelegram(
+// 	telegramId int64,
+// 	username string,
+// 	accessSecretKey []byte,
+// 	refreshSecretKey []byte,
+// ) (accessToken string, refreshToken string, Err error) {
+// 	preparedExternalId := strconv.Itoa(int(telegramId))
 
-	return au.authorizeByProvider(
-		telegramProviderName,
-		preparedExternalId,
-		username,
-		accessSecretKey,
-		refreshSecretKey,
-	)
-}
+// 	return au.authorizeByProvider(
+// 		telegramProviderName,
+// 		preparedExternalId,
+// 		username,
+// 		accessSecretKey,
+// 		refreshSecretKey,
+// 	)
+// }
 
 func (au *AuthService) AuthorizeByCredentials(
 	login string,

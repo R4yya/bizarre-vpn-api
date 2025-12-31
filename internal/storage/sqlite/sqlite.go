@@ -51,7 +51,6 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 
 	lnkUserProviderStorage := &LnkUserProviderStorage{
 		db,
-		userStorage,
 	}
 	lnkUserProviderStorage.MustInit()
 

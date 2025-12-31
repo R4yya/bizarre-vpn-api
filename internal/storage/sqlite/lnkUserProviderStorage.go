@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
 	"github.com/jmoiron/sqlx"
 )
 
 type LnkUserProviderStorage struct {
-	db          Database
-	userStorage *UserStorage
+	db Database
 }
 
 func (s *LnkUserProviderStorage) MustInit() {
@@ -73,59 +73,37 @@ func (s *LnkUserProviderStorage) GetListByUserId(userId int64) (*[]models.LnkUse
 }
 
 func (s *LnkUserProviderStorage) CreateLnkUserProvider(
-	lnkUserProvider *models.LnkUserProvider,
-	username string,
-) (providerId int64, createdUser *models.BaseUser, Err error) {
-	tx, err := s.db.Beginx()
-
-	if err != nil {
-		return 0, nil, fmt.Errorf("failed to create transaction: %w", err)
+	createLnkUserProviderPayload *models.CreateLnkUserProviderPayload,
+	executor storage.Executor,
+) (*models.LnkUserProvider, error) {
+	if executor == nil {
+		executor = s.db
 	}
-
-	createUserPayload := &models.CreateUserPayload{
-		Username: username,
-		Role:     models.UserRoleClient,
-	}
-
-	user, err := s.userStorage.CreateUser(createUserPayload, tx)
-
-	if err != nil {
-		_ = tx.Rollback()
-
-		return 0, nil, fmt.Errorf("failed to create user: %w", err)
-	}
-
-	lnkUserProvider.UserId = user.ID
 
 	query := `INSERT into lnk_user_providers 
 	(provider_type, external_user_id, user_id) 
-	VALUES (:provider_type, :external_user_id, :user_id)`
+	VALUES (:provider_type, :external_user_id, :user_id) RETURNING *`
 
-	result, err := sqlx.NamedExec(tx, query, lnkUserProvider)
+	rows, err := sqlx.NamedQuery(executor, query, createLnkUserProviderPayload)
 	if err != nil {
-		_ = tx.Rollback()
-
-		return 0, nil, fmt.Errorf("failed to create LnkUserProvider: %w", err)
+		return nil, fmt.Errorf("failed to create LnkUserProvider: %w", err)
 	}
 
-	lnkUserProviderId, err := result.LastInsertId()
-	if err != nil {
-		_ = tx.Rollback()
+	defer rows.Close()
 
-		return 0, nil, fmt.Errorf("failed to retrieve last insert of LnkUserProvider ID for : %w", err)
+	if !rows.Next() {
+		return nil, fmt.Errorf("failed to get rows.Next: %w", err)
 	}
 
-	createdUser, err = s.userStorage.GetUserById(user.ID, tx)
+	var createdProvider models.LnkUserProvider
+
+	err = rows.StructScan(&createdProvider)
 
 	if err != nil {
-		_ = tx.Rollback()
-
-		return 0, nil, fmt.Errorf("failed to getting created user: %w", err)
+		return nil, fmt.Errorf("failed to scan inserted LnkUserProvider: %w", err)
 	}
 
-	_ = tx.Commit()
-
-	return lnkUserProviderId, createdUser, nil
+	return &createdProvider, nil
 }
 
 // func (s *LnkUserProviderStorage) addProviderIfNotExist(authProvider *models.AuthProvider) (int64, error) {

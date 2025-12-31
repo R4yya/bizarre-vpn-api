@@ -13,6 +13,6 @@ func AuthRoutes(customRouter *CustomRouter) {
 	}
 
 	customRouter.routerGroup.POST("/credentials", authHandler.AuthorizeWithCredentials)
-	customRouter.routerGroup.POST("/telegram-init-data", authHandler.AuthorizeWithInitData)
+	//customRouter.routerGroup.POST("/telegram-init-data", authHandler.AuthorizeWithInitData)
 	customRouter.routerGroup.POST("/refresh-tokens", authHandler.RefreshTokens)
 }

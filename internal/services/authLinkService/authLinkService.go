@@ -3,6 +3,7 @@ package authLinkService
 import (
 	"bizarre-vpn-api/internal/lib/random"
 	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 	"errors"
 	"fmt"
@@ -11,6 +12,11 @@ import (
 
 var (
 	ErrUserAlreadyLinked = errors.New("user already linked")
+	ErrAuthLinkNotFound  = errors.New("auth link not found")
+)
+
+const (
+	LinkUserCodeLength = 6
 )
 
 type AuthLinksStorage interface {
@@ -36,8 +42,42 @@ func NewAuthLinksService(
 	}
 }
 
-func (s *AuthLinkService) GetItemByCode(code string) (*models.AuthLink, error) {
-	return s.authLinksStorage.GetItemByCode(code)
+func (s *AuthLinkService) LinkUserWithTgProviderByCode(code string, externalUserId string) (userId int64, Err error) {
+	op := "internal.services.authLinksService.LinkUserWithTgProviderByCode"
+
+	authLink, err := s.authLinksStorage.GetItemByCode(code)
+
+	if err != nil {
+		if errors.Is(err, storage.ErrAuthLinkNotFound) {
+			return 0, ErrAuthLinkNotFound
+		}
+
+		return 0, fmt.Errorf("%v: %w", op, err)
+	}
+
+	userProviders, err := s.lnkUserProviderStorage.GetListByUserId(authLink.UserId)
+
+	if err != nil {
+		return 0, fmt.Errorf("%v: %w", op, err)
+	}
+
+	if len(*userProviders) != 0 {
+		return 0, ErrUserAlreadyLinked
+	}
+
+	createLnkUserProviderPayload := models.CreateLnkUserProviderPayload{
+		ProviderType:   models.TelegramProviderName,
+		ExternalUserId: externalUserId,
+		UserId:         authLink.UserId,
+	}
+
+	createdLnkUserProvider, err := s.lnkUserProviderStorage.CreateLnkUserProvider(&createLnkUserProviderPayload, nil)
+
+	if err != nil {
+		return 0, fmt.Errorf("%v: create LnkUserProvider error: %w", op, err)
+	}
+
+	return createdLnkUserProvider.UserId, nil
 }
 
 func (s *AuthLinkService) CreateItem(userId int64) (*models.AuthLink, error) {
@@ -53,7 +93,7 @@ func (s *AuthLinkService) CreateItem(userId int64) (*models.AuthLink, error) {
 		return nil, ErrUserAlreadyLinked
 	}
 
-	randomCode, err := random.GetRandomString(6)
+	randomCode, err := random.GetRandomString(LinkUserCodeLength)
 
 	if err != nil {
 		return nil, fmt.Errorf("%v: generate random code error: %w", op, err)
