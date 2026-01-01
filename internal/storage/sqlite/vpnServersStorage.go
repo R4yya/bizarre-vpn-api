@@ -1,7 +1,7 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/storage/models"
 	"fmt"
 )
@@ -66,7 +66,7 @@ func (s *VpnServersStorage) GetExpandedItemById(vpnServerId int64) (*models.VpnS
 	err := s.db.Get(&vpnServer, query, vpnServerId)
 
 	if err != nil {
-		return nil, storage.ErrPlanNotFound
+		return nil, coreErrors.ErrorNotFound
 	}
 
 	fmt.Printf("\n vpnServer %v \n", vpnServer)
@@ -121,7 +121,7 @@ func (s *VpnServersStorage) DeleteItem(vpnServerId int64) error {
 	}
 
 	if rowsAffected == 0 {
-		return storage.ErrVpnServerNotFound
+		return coreErrors.ErrorNotFound
 	}
 
 	return nil

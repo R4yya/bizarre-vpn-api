@@ -6,19 +6,12 @@ import (
 	"log/slog"
 	"unicode/utf8"
 
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	ErrInvalidPassword = errors.New("user password is invalid")
-	ErrIncorrectRole   = errors.New("role is incorrect")
-	ErrLoginIsTooSmall = errors.New("login is too small")
-	ErrLoginOccupied   = errors.New("user with this login already exist")
 )
 
 type UserService struct {
@@ -53,6 +46,10 @@ func (s *UserService) GetUserById(ID int64) (*models.BaseUser, error) {
 
 	user, err := s.userStorage.GetUserById(ID, nil)
 	if err != nil {
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return nil, err
+		}
+
 		return nil, fmt.Errorf("%v: failed to get user: %w", op, err)
 	}
 	return user, nil
@@ -68,19 +65,19 @@ func (s *UserService) CreateUser(payload *models.CreateUserPayload) (*models.Bas
 	log.Debug("CreateUser start")
 
 	if payload.Role != models.UserRoleClient && payload.Role != models.UserRoleAdmin {
-		return nil, ErrIncorrectRole
+		return nil, coreErrors.ErrorIncorrectRole
 	}
 
 	if payload.Login != nil {
 		if utf8.RuneCountInString(*payload.Login) < 5 {
-			return nil, ErrLoginIsTooSmall
+			return nil, coreErrors.ErrorLoginIsTooSmall
 		}
 	}
 
 	if payload.Password != nil {
 		//TODO: add more strange password validation
 		if utf8.RuneCountInString(*payload.Password) < 5 {
-			return nil, ErrInvalidPassword
+			return nil, coreErrors.ErrorInvalidPassword
 		}
 
 		passwordHash, err := bcrypt.GenerateFromPassword([]byte(*payload.Password), bcrypt.DefaultCost)
@@ -97,8 +94,8 @@ func (s *UserService) CreateUser(payload *models.CreateUserPayload) (*models.Bas
 	user, err := s.userStorage.CreateUser(payload, nil)
 
 	if err != nil {
-		if errors.Is(err, storage.ErrLoginOccupied) {
-			return nil, ErrLoginOccupied
+		if errors.Is(err, coreErrors.ErrorAlreadyExist) {
+			return nil, coreErrors.ErrorLoginOccupied
 		}
 
 		return nil, fmt.Errorf("%v: create user error: %w", op, err)

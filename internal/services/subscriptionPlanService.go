@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	intStorage "bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/storage/models"
 )
 
@@ -34,8 +34,8 @@ func (s *SubscriptionPlanService) GetAllPlans() ([]models.SubscriptionPlan, erro
 func (s *SubscriptionPlanService) GetPlan(id int64) (*models.SubscriptionPlan, error) {
 	plan, err := s.storage.GetSubscriptionPlanByID(id)
 	if err != nil {
-		if errors.Is(err, intStorage.ErrPlanNotFound) {
-			return nil, intStorage.ErrPlanNotFound
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return nil, err
 		}
 		return nil, fmt.Errorf("error getting subscription plan by id: %w", err)
 	}
@@ -76,8 +76,8 @@ func (s *SubscriptionPlanService) UpdatePlan(plan *models.SubscriptionPlan) (*mo
 
 	err := s.storage.UpdateSubscriptionPlan(plan)
 	if err != nil {
-		if errors.Is(err, intStorage.ErrPlanNotFound) {
-			return nil, intStorage.ErrPlanNotFound
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return nil, err
 		}
 		return nil, fmt.Errorf("error updating subscription plan: %w", err)
 	}
@@ -89,8 +89,8 @@ func (s *SubscriptionPlanService) UpdatePlan(plan *models.SubscriptionPlan) (*mo
 func (s *SubscriptionPlanService) DeletePlan(id int64) error {
 	err := s.storage.DeleteSubscriptionPlanByID(id)
 	if err != nil {
-		if errors.Is(err, intStorage.ErrPlanNotFound) {
-			return intStorage.ErrPlanNotFound
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return err
 		}
 		return fmt.Errorf("error deleting subscription plan by id: %w", err)
 	}

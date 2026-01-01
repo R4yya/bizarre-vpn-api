@@ -3,6 +3,7 @@ package handlers
 import (
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
 	"bizarre-vpn-api/internal/services/userService"
@@ -147,7 +148,7 @@ func (ah *AuthHandler) AuthorizeWithCredentials(c *gin.Context) {
 	)
 
 	if err != nil {
-		if errors.Is(err, services.ErrorAuthServiceIncorrectUsernameOrPass) {
+		if errors.Is(err, coreErrors.ErrorIncorrectLoginOrPass) {
 			c.JSON(http.StatusInternalServerError, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return

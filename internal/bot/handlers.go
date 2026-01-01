@@ -10,6 +10,7 @@ import (
 	tele "gopkg.in/telebot.v4"
 
 	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services/authLinkService"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
@@ -54,11 +55,11 @@ func handleStart(c tele.Context, webAppUrl string, log *slog.Logger, storage *cS
 	userId, err := authLinkServiceInstance.LinkUserWithTgProviderByCode(payload, preparedExternalId)
 
 	if err != nil {
-		if errors.Is(err, authLinkService.ErrUserAlreadyLinked) {
+		if errors.Is(err, coreErrors.ErrorUserAlreadyLinked) {
 			return c.Send("Ваш аккаунт уже привязан")
 		}
 
-		if errors.Is(err, authLinkService.ErrAuthLinkNotFound) {
+		if errors.Is(err, coreErrors.ErrorNotFound) {
 			return c.Send("Ссылка не действительна")
 		}
 

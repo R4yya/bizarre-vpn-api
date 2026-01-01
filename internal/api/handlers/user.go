@@ -9,6 +9,7 @@ import (
 
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/bot"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services/authLinkService"
 	"bizarre-vpn-api/internal/services/userService"
@@ -32,7 +33,7 @@ type UserAuthorizationRequest struct {
 }
 
 // GetUserDataHandler processes the user authorization request
-// @Summary Get User Data
+// @Summary Get Users Data List
 // @Security token
 // @scope.admin only administrative information
 // @Description Getting base user list for admin
@@ -155,10 +156,10 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	createdUser, err := h.UserService.CreateUser(&body)
 
 	if err != nil {
-		if errors.Is(userService.ErrIncorrectRole, err) ||
-			errors.Is(userService.ErrInvalidPassword, err) ||
-			errors.Is(userService.ErrLoginOccupied, err) ||
-			errors.Is(userService.ErrLoginIsTooSmall, err) {
+		if errors.Is(coreErrors.ErrorIncorrectRole, err) ||
+			errors.Is(coreErrors.ErrorInvalidPassword, err) ||
+			errors.Is(coreErrors.ErrorLoginOccupied, err) ||
+			errors.Is(coreErrors.ErrorLoginIsTooSmall, err) {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return
@@ -214,7 +215,7 @@ func (h *UserHandler) CreateUserAuthLink(c *gin.Context) {
 	authLink, err := h.AuthLinkService.CreateItem(userId)
 
 	if err != nil {
-		if errors.Is(authLinkService.ErrUserAlreadyLinked, err) {
+		if errors.Is(coreErrors.ErrorUserAlreadyLinked, err) {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return

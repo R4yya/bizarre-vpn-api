@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
@@ -82,7 +83,7 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 	err := sqlx.Get(executor, &user, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrUserNotFound
+			return nil, coreErrors.ErrorNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -105,7 +106,7 @@ func (u *UserStorage) GetUserByLogin(login string) (*models.BaseUser, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrUserNotFound
+			return nil, coreErrors.ErrorNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -122,7 +123,7 @@ func (u *UserStorage) GetUserPasswordHash(userId int64) (string, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", storage.ErrUserNotFound
+			return "", coreErrors.ErrorNotFound
 		}
 
 		return "", fmt.Errorf("failed to get user password hash: %w", err)
@@ -166,7 +167,7 @@ func (u *UserStorage) CreateUser(
 
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed: users.login") {
-			return nil, storage.ErrLoginOccupied
+			return nil, coreErrors.ErrorAlreadyExist
 		}
 
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -194,7 +195,7 @@ func (u *UserStorage) GetUserRefreshToken(ID int64) (string, error) {
 	err := u.db.Get(&refreshToken, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", storage.ErrUserNotFound
+			return "", coreErrors.ErrorNotFound
 		}
 		return "", fmt.Errorf("failed to get user: %w", err)
 	}

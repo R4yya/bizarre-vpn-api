@@ -1,18 +1,13 @@
 package authLinkService
 
 import (
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/random"
 	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 	"errors"
 	"fmt"
 	"log/slog"
-)
-
-var (
-	ErrUserAlreadyLinked = errors.New("user already linked")
-	ErrAuthLinkNotFound  = errors.New("auth link not found")
 )
 
 const (
@@ -48,8 +43,8 @@ func (s *AuthLinkService) LinkUserWithTgProviderByCode(code string, externalUser
 	authLink, err := s.authLinksStorage.GetItemByCode(code)
 
 	if err != nil {
-		if errors.Is(err, storage.ErrAuthLinkNotFound) {
-			return 0, ErrAuthLinkNotFound
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return 0, err
 		}
 
 		return 0, fmt.Errorf("%v: %w", op, err)
@@ -62,7 +57,7 @@ func (s *AuthLinkService) LinkUserWithTgProviderByCode(code string, externalUser
 	}
 
 	if len(*userProviders) != 0 {
-		return 0, ErrUserAlreadyLinked
+		return 0, coreErrors.ErrorUserAlreadyLinked
 	}
 
 	createLnkUserProviderPayload := models.CreateLnkUserProviderPayload{
@@ -90,7 +85,7 @@ func (s *AuthLinkService) CreateItem(userId int64) (*models.AuthLink, error) {
 	}
 
 	if len(*userProviders) != 0 {
-		return nil, ErrUserAlreadyLinked
+		return nil, coreErrors.ErrorUserAlreadyLinked
 	}
 
 	randomCode, err := random.GetRandomString(LinkUserCodeLength)

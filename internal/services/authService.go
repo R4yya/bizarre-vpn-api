@@ -5,16 +5,12 @@ import (
 	"fmt"
 	"log/slog"
 
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/jwt"
 	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 
 	"golang.org/x/crypto/bcrypt"
-)
-
-var (
-	ErrorAuthServiceIncorrectUsernameOrPass = errors.New("incorrect username or password")
 )
 
 type AuthService struct {
@@ -162,8 +158,8 @@ func (au *AuthService) AuthorizeByCredentials(
 	user, err := au.userStorage.GetUserByLogin(login)
 
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return "", "", coreErrors.ErrorIncorrectLoginOrPass
 		}
 
 		return "", "", fmt.Errorf("%v: error when getting user: %w", op, err)
@@ -172,17 +168,13 @@ func (au *AuthService) AuthorizeByCredentials(
 	userHashedPassword, err := au.userStorage.GetUserPasswordHash(user.ID)
 
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return "", "", ErrorAuthServiceIncorrectUsernameOrPass
-		}
-
 		return "", "", fmt.Errorf("%v: error when getting user password hash : %w", op, err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userHashedPassword), []byte(password))
 
 	if err != nil {
-		return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+		return "", "", coreErrors.ErrorIncorrectLoginOrPass
 	}
 
 	return au.getAuthorizeTokens(user, accessSecretKey, refreshSecretKey)

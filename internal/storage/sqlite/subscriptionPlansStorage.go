@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/storage/models"
 )
 
@@ -54,7 +54,7 @@ func (sp *SubscriptionPlanStorage) GetSubscriptionPlanByID(id int64) (*models.Su
 	err := sp.db.Get(&plan, query, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrPlanNotFound
+			return nil, coreErrors.ErrorNotFound
 		}
 		return nil, fmt.Errorf("failed to get subscription plan: %w", err)
 	}
@@ -103,7 +103,7 @@ func (sp *SubscriptionPlanStorage) UpdateSubscriptionPlan(plan *models.Subscript
 	}
 
 	if rowsAffected == 0 {
-		return storage.ErrPlanNotFound
+		return coreErrors.ErrorNotFound
 	}
 	return nil
 }
@@ -122,7 +122,7 @@ func (sp *SubscriptionPlanStorage) DeleteSubscriptionPlanByID(id int64) error {
 	}
 
 	if rowsAffected == 0 {
-		return storage.ErrPlanNotFound
+		return coreErrors.ErrorNotFound
 	}
 
 	return nil

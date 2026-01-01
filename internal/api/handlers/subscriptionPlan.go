@@ -8,9 +8,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 )
 
@@ -85,7 +85,7 @@ func (h *SubscriptionPlanHandler) GetPlanHandler(c *gin.Context) {
 	}
 
 	plan, err := h.subscriptionPlanService.GetPlan(id)
-	if errors.Is(err, storage.ErrPlanNotFound) {
+	if errors.Is(err, coreErrors.ErrorNotFound) {
 		c.JSON(http.StatusNotFound, MessageResponse{Message: err.Error()})
 		return
 	} else if err != nil {
@@ -195,7 +195,7 @@ func (h *SubscriptionPlanHandler) UpdatePlanHandler(c *gin.Context) {
 
 	updatedPlan, err := h.subscriptionPlanService.UpdatePlan(plan)
 	if err != nil {
-		if errors.Is(err, storage.ErrPlanNotFound) {
+		if errors.Is(err, coreErrors.ErrorNotFound) {
 			h.Log.Info("update plan not found", sl.Err(err))
 			c.JSON(http.StatusNotFound, MessageResponse{Message: err.Error()})
 			return
@@ -237,7 +237,7 @@ func (h *SubscriptionPlanHandler) DeletePlanHandler(c *gin.Context) {
 	}
 
 	if err = h.subscriptionPlanService.DeletePlan(id); err != nil {
-		if errors.Is(err, storage.ErrPlanNotFound) {
+		if errors.Is(err, coreErrors.ErrorNotFound) {
 			h.Log.Info("delete plan not found err")
 			c.JSON(http.StatusNotFound, MessageResponse{Message: err.Error()})
 			return

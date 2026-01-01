@@ -1,16 +1,16 @@
 package handlers
 
 import (
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage"
 	"bizarre-vpn-api/internal/storage/models"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"strconv"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -92,7 +92,7 @@ func (h *VpnServersHandler) GetExpandedItem(c *gin.Context) {
 	item, err := h.VpnServersService.GetExpandedItemById(vpnServerId)
 
 	if err != nil {
-		if isNotFound := errors.Is(err, storage.ErrVpnServerNotFound); isNotFound {
+		if isNotFound := errors.Is(err, coreErrors.ErrorNotFound); isNotFound {
 			log.Info(err.Error())
 			c.JSON(http.StatusNotFound, ErrorResponse{Error: "vpn server not found"})
 			c.Abort()
@@ -165,32 +165,17 @@ func (h *VpnServersHandler) CreateItem(c *gin.Context) {
 	if err != nil {
 		log.Error("error of getting created vpnServerExpanded", sl.Err(err))
 
-		if strings.Contains(err.Error(), services.ErrorUniqueConstraintHostAndPort) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Item with same host and port already exist"})
-			c.Abort()
-			return
+		errorSlice := []coreErrors.ErrorVpnServer{
+			coreErrors.ErrorVpnServerInvalidIp,
+			coreErrors.ErrorVpnServerInvalidPort,
+			coreErrors.ErrorVpnServerNameIsTooSmall,
+			coreErrors.ErrorVpnServerUniqueConstraint,
+			coreErrors.ErrorVpnServerUniqueConstraintHostAndPort,
+			coreErrors.ErrorVpnServerUniqueConstraintName,
 		}
 
-		if strings.Contains(err.Error(), services.ErrorUniqueConstraintName) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "Item with same name already exist"})
-			c.Abort()
-			return
-		}
-
-		if isNotExist := strings.Contains(err.Error(), services.ErrorInvalidIp); isNotExist {
-			c.JSON(http.StatusBadRequest, ErrorResponse{services.ErrorInvalidIp})
-			c.Abort()
-			return
-		}
-
-		if strings.Contains(err.Error(), services.ErrorInvalidPort) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{services.ErrorInvalidPort})
-			c.Abort()
-			return
-		}
-
-		if strings.Contains(err.Error(), services.ErrorNameIsTooSmall) {
-			c.JSON(http.StatusBadRequest, ErrorResponse{services.ErrorNameIsTooSmall})
+		if slices.Contains(errorSlice, err) {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return
 		}
@@ -236,7 +221,7 @@ func (h *VpnServersHandler) DeleteItem(c *gin.Context) {
 	err = h.VpnServersService.DeleteItem(vpnServerId)
 
 	if err != nil {
-		if isNotFound := errors.Is(err, storage.ErrVpnServerNotFound); isNotFound {
+		if isNotFound := errors.Is(err, coreErrors.ErrorNotFound); isNotFound {
 			log.Info(err.Error())
 			c.JSON(http.StatusNotFound, ErrorResponse{Error: "vpn server not found"})
 			c.Abort()

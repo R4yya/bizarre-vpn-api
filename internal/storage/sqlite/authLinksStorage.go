@@ -1,7 +1,7 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/storage"
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/storage/models"
 	"fmt"
 )
@@ -43,7 +43,7 @@ func (s *AuthLinksStorage) GetItemByCode(code string) (*models.AuthLink, error) 
 	err := s.db.Get(&authLink, query, code)
 
 	if err != nil {
-		return nil, storage.ErrAuthLinkNotFound
+		return nil, coreErrors.ErrorNotFound
 	}
 
 	return &authLink, nil

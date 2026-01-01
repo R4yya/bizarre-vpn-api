@@ -1,21 +1,12 @@
 package services
 
 import (
+	"bizarre-vpn-api/internal/core/coreErrors"
 	"bizarre-vpn-api/internal/storage/models"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net"
 	"unicode/utf8"
-)
-
-const (
-	ErrorInvalidIp                   = "invalid IP"
-	ErrorInvalidPort                 = "invalid port"
-	ErrorNameIsTooSmall              = "name too small"
-	ErrorUniqueConstraint            = "UNIQUE constraint failed"
-	ErrorUniqueConstraintHostAndPort = "UNIQUE constraint failed: vpn_servers.adapter_host, vpn_servers.adapter_port"
-	ErrorUniqueConstraintName        = "UNIQUE constraint failed: vpn_servers.name"
 )
 
 type VpnServersStorage interface {
@@ -67,18 +58,16 @@ func (service *VpnServersService) GetExpandedItemById(vpnServerId int64) (*model
 func (service *VpnServersService) CreateItem(vpnServer *models.VpnServerItem) (int64, error) {
 	op := "internal.services.vpnServersStorage.CreateItem"
 
-	//log := service.log.With(slog.String("op", op))
-
 	if parsedIp := net.ParseIP(vpnServer.AdapterHost); parsedIp == nil {
-		return 0, errors.New(ErrorInvalidIp)
+		return 0, coreErrors.ErrorVpnServerInvalidIp
 	}
 
 	if vpnServer.AdapterPort == 0 {
-		return 0, errors.New(ErrorInvalidPort)
+		return 0, coreErrors.ErrorVpnServerInvalidPort
 	}
 
 	if nameLen := utf8.RuneCountInString(vpnServer.Name); nameLen < 3 {
-		return 0, errors.New(ErrorNameIsTooSmall)
+		return 0, coreErrors.ErrorVpnServerNameIsTooSmall
 	}
 
 	vpnServerID, err := service.vpnServersStorage.CreateItem(vpnServer)
