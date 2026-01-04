@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -61,7 +60,7 @@ func (s *LnkUserProviderStorage) GetItemByType(
 func (s *LnkUserProviderStorage) GetListByUserId(userId int64) (*[]models.LnkUserProvider, error) {
 	query := `SELECT * FROM lnk_user_providers WHERE user_id = ?`
 
-	var list []models.LnkUserProvider
+	list := make([]models.LnkUserProvider, 0)
 
 	err := s.db.Select(&list, query, userId)
 
@@ -74,7 +73,7 @@ func (s *LnkUserProviderStorage) GetListByUserId(userId int64) (*[]models.LnkUse
 
 func (s *LnkUserProviderStorage) CreateLnkUserProvider(
 	createLnkUserProviderPayload *models.CreateLnkUserProviderPayload,
-	executor storage.Executor,
+	executor Executor,
 ) (*models.LnkUserProvider, error) {
 	if executor == nil {
 		executor = s.db

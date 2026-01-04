@@ -1,7 +1,6 @@
 package storage
 
-import (
-	"github.com/jmoiron/sqlx"
-)
+import "github.com/jmoiron/sqlx"
 
 type Executor = sqlx.Ext
+type Database = *sqlx.DB

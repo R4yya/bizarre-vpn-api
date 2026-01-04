@@ -8,7 +8,7 @@ import (
 
 	"bizarre-vpn-api/internal/api/handlers"
 	"bizarre-vpn-api/internal/api/helpers"
-	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/shared/config"
 )
 
 func AuthRequired(log *slog.Logger, cfg *config.Config) gin.HandlerFunc {

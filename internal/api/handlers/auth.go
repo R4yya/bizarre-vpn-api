@@ -2,11 +2,11 @@ package handlers
 
 import (
 	"bizarre-vpn-api/internal/api/helpers"
-	"bizarre-vpn-api/internal/config"
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/services/userService"
+	"bizarre-vpn-api/internal/services/interfaces"
+	"bizarre-vpn-api/internal/shared/config"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -19,8 +19,8 @@ import (
 type AuthHandler struct {
 	Log                    *slog.Logger
 	CFG                    *config.Config
-	UserStorage            services.UserStorage
-	LnkUserProviderStorage services.LnkUserProviderStorage
+	UserStorage            interfaces.UserStorage
+	LnkUserProviderStorage interfaces.LnkUserProviderStorage
 }
 
 type AuthResponse struct {
@@ -193,7 +193,7 @@ func (ah *AuthHandler) RefreshTokens(c *gin.Context) {
 		return
 	}
 
-	userService := userService.NewUserService(log, ah.UserStorage)
+	userService := services.NewUserService(log, ah.UserStorage)
 
 	log.Debug("Getting user by userId from token", slog.Int64("userId", tokenInfo.UserID))
 	user, err := userService.GetUserById(tokenInfo.UserID)

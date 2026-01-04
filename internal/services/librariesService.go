@@ -1,8 +1,8 @@
 package services
 
 import (
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	"fmt"
 	"log/slog"
 )

@@ -1,10 +1,10 @@
-package authLinkService
+package services
 
 import (
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/lib/random"
-	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services/interfaces"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/random"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -14,21 +14,16 @@ const (
 	LinkUserCodeLength = 6
 )
 
-type AuthLinksStorage interface {
-	GetItemByCode(code string) (*models.AuthLink, error)
-	CreateItem(payload *models.AuthLinkCreatePayload) (*models.AuthLink, error)
-}
-
 type AuthLinkService struct {
 	log                    *slog.Logger
-	authLinksStorage       AuthLinksStorage
-	lnkUserProviderStorage services.LnkUserProviderStorage
+	authLinksStorage       interfaces.AuthLinksStorage
+	lnkUserProviderStorage interfaces.LnkUserProviderStorage
 }
 
 func NewAuthLinksService(
 	log *slog.Logger,
-	authLinksStorage AuthLinksStorage,
-	lnkUserProviderStorage services.LnkUserProviderStorage,
+	authLinksStorage interfaces.AuthLinksStorage,
+	lnkUserProviderStorage interfaces.LnkUserProviderStorage,
 ) *AuthLinkService {
 	return &AuthLinkService{
 		authLinksStorage:       authLinksStorage,

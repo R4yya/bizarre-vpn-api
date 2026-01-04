@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/coreErrors"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -39,7 +38,7 @@ func (u *UserStorage) MustInit() {
 }
 
 func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
-	var usersList []models.FullUser
+	usersList := make([]models.FullUser, 0)
 
 	query := `SELECT 
 	id,
@@ -65,7 +64,7 @@ func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
 }
 
 // GetUserByTelegramID gets the user by Telegram ID
-func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.BaseUser, error) {
+func (u *UserStorage) GetUserById(ID int64, executor Executor) (*models.BaseUser, error) {
 	if executor == nil {
 		executor = u.db
 	}
@@ -135,7 +134,7 @@ func (u *UserStorage) GetUserPasswordHash(userId int64) (string, error) {
 // CreateUser add a new user to the database
 func (u *UserStorage) CreateUser(
 	payload *models.CreateUserPayload,
-	executor storage.Executor,
+	executor Executor,
 ) (*models.BaseUser, error) {
 	if executor == nil {
 		executor = u.db

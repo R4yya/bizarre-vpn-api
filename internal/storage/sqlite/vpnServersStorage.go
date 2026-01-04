@@ -1,8 +1,8 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/coreErrors"
 	"fmt"
 )
 
@@ -39,7 +39,7 @@ func (s *VpnServersStorage) GetExpandedList() (*[]models.VpnServerExpandedItem, 
 	JOIN backend_types bt ON lpbt.backend_type_id = bt.id
 	`
 
-	vpnServersList := []models.VpnServerExpandedItem{}
+	vpnServersList := make([]models.VpnServerExpandedItem, 0)
 
 	err := s.db.Select(&vpnServersList, query)
 

@@ -1,4 +1,4 @@
-package initData
+package telegram
 
 import (
 	"crypto/hmac"

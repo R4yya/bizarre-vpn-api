@@ -3,17 +3,16 @@ package routes
 import (
 	"bizarre-vpn-api/internal/api/handlers"
 	"bizarre-vpn-api/internal/api/middlewares"
-	"bizarre-vpn-api/internal/services/authLinkService"
-	"bizarre-vpn-api/internal/services/userService"
+	"bizarre-vpn-api/internal/services"
 )
 
 func UserRoutes(customRouter *CustomRouter) {
-	userService := userService.NewUserService(
+	userService := services.NewUserService(
 		customRouter.log,
 		customRouter.storage.UserStorage,
 	)
 
-	authLinkService := authLinkService.NewAuthLinksService(
+	authLinkService := services.NewAuthLinksService(
 		customRouter.log,
 		customRouter.storage.AuthLinksStorage,
 		customRouter.storage.LnkUserProviderStorage,

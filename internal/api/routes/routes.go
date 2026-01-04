@@ -8,7 +8,7 @@ import (
 
 	"bizarre-vpn-api/internal/api/middlewares"
 	"bizarre-vpn-api/internal/bot"
-	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/shared/config"
 	"bizarre-vpn-api/internal/storage/sqlite"
 )
 
@@ -30,7 +30,7 @@ func SetupRouter(log *slog.Logger, cfg *config.Config, storage *sqlite.Storage, 
 	customRouter.AddGroup("/users", UserRoutes)
 	customRouter.AddGroup("/libraries", LibrariesRoutes)
 	customRouter.AddGroup("/vpn-servers", VpnServersRoutes)
-	//customRouter.AddGroup("/plans", SubscriptionPlanRoutes)
+	customRouter.AddGroup("/subscription-plans", SubscriptionPlanRoutes)
 	DocsRoutes(customRouter)
 
 	return customRouter._router

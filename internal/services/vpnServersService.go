@@ -1,29 +1,23 @@
 package services
 
 import (
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services/interfaces"
+	"bizarre-vpn-api/internal/shared/coreErrors"
 	"fmt"
 	"log/slog"
 	"net"
 	"unicode/utf8"
 )
 
-type VpnServersStorage interface {
-	GetExpandedList() (*[]models.VpnServerExpandedItem, error)
-	GetExpandedItemById(vpnServerId int64) (*models.VpnServerExpandedItem, error)
-	CreateItem(vpnServer *models.VpnServerItem) (int64, error)
-	DeleteItem(vpnServerId int64) error
-}
-
 type VpnServersService struct {
 	log               *slog.Logger
-	vpnServersStorage VpnServersStorage
+	vpnServersStorage interfaces.VpnServersStorage
 }
 
 func NewVpnServersService(
 	log *slog.Logger,
-	vpnServersStorage VpnServersStorage,
+	vpnServersStorage interfaces.VpnServersStorage,
 ) *VpnServersService {
 	return &VpnServersService{
 		log:               log,
@@ -59,15 +53,33 @@ func (service *VpnServersService) CreateItem(vpnServer *models.VpnServerItem) (i
 	op := "internal.services.vpnServersStorage.CreateItem"
 
 	if parsedIp := net.ParseIP(vpnServer.AdapterHost); parsedIp == nil {
-		return 0, coreErrors.ErrorVpnServerInvalidIp
+		return 0, coreErrors.ValidationError{
+			Msg:    "invalid IP",
+			Entity: "vpnServer",
+			Fields: []string{
+				"adapterHost",
+			},
+		}
 	}
 
 	if vpnServer.AdapterPort == 0 {
-		return 0, coreErrors.ErrorVpnServerInvalidPort
+		return 0, coreErrors.ValidationError{
+			Msg:    "invalid port",
+			Entity: "vpnServer",
+			Fields: []string{
+				"adapterPort",
+			},
+		}
 	}
 
-	if nameLen := utf8.RuneCountInString(vpnServer.Name); nameLen < 3 {
-		return 0, coreErrors.ErrorVpnServerNameIsTooSmall
+	if nameLen := utf8.RuneCountInString(vpnServer.Name); nameLen < 3 || nameLen >= 250 {
+		return 0, coreErrors.ValidationError{
+			Msg:    "must be grater than 3 and least than 250",
+			Entity: "vpnServer",
+			Fields: []string{
+				"name",
+			},
+		}
 	}
 
 	vpnServerID, err := service.vpnServersStorage.CreateItem(vpnServer)

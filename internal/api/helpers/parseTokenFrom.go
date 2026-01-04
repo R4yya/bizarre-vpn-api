@@ -1,8 +1,8 @@
 package helpers
 
 import (
-	"bizarre-vpn-api/internal/lib/jwt"
-	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/shared/jwt"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	"fmt"
 	"log/slog"
 	"strings"

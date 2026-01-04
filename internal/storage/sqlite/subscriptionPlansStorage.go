@@ -4,27 +4,28 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/coreErrors"
 )
 
-type SubscriptionPlanStorage struct {
+type subscriptionPlanStorage struct {
 	db Database
 }
 
-func (u *SubscriptionPlanStorage) MustInit() {
+func (u *subscriptionPlanStorage) MustInit() {
 	query := `CREATE TABLE IF NOT EXISTS subscription_plans(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL
-		-- language_code TEXT NOT NULL
-		-- created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    -- updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-		-- role VARCHAR(255),
-		-- refresh_token TEXT(500)
+		name TEXT NOT NULL UNIQUE,
+		description TEXT NOT NULL,
+		price INTEGER NOT NULL,
+		duration_days INTEGER NOT NULL,
+		vpn_server_id INTEGER NOT NULL,
+		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+		FOREIGN KEY (vpn_server_id) REFERENCES vpn_servers(id)
 	);`
-
-	//CREATE INDEX IF NOT EXISTS idx_id ON users(id)
 
 	_, err := u.db.Exec(query)
 
@@ -34,8 +35,8 @@ func (u *SubscriptionPlanStorage) MustInit() {
 }
 
 // GetAllSubscriptionPlans returns all available subscription plans
-func (sp *SubscriptionPlanStorage) GetAllSubscriptionPlans() ([]models.SubscriptionPlan, error) {
-	var plans []models.SubscriptionPlan
+func (sp *subscriptionPlanStorage) GetAllSubscriptionPlans() ([]models.SubscriptionPlan, error) {
+	var plans = make([]models.SubscriptionPlan, 0)
 
 	query := "SELECT * FROM subscription_plans"
 	err := sp.db.Select(&plans, query)
@@ -47,11 +48,11 @@ func (sp *SubscriptionPlanStorage) GetAllSubscriptionPlans() ([]models.Subscript
 }
 
 // GetSubscriptionPlanByID gets a subscription plan by ID
-func (sp *SubscriptionPlanStorage) GetSubscriptionPlanByID(id int64) (*models.SubscriptionPlan, error) {
+func (sp *subscriptionPlanStorage) GetSubscriptionPlanByID(subscriptionPlanId int64) (*models.SubscriptionPlan, error) {
 	var plan models.SubscriptionPlan
 
 	query := "SELECT * FROM subscription_plans WHERE id = ?"
-	err := sp.db.Get(&plan, query, id)
+	err := sp.db.Get(&plan, query, subscriptionPlanId)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, coreErrors.ErrorNotFound
@@ -63,53 +64,74 @@ func (sp *SubscriptionPlanStorage) GetSubscriptionPlanByID(id int64) (*models.Su
 }
 
 // CreateSubscriptionPlan adds a new subscription plan to the database
-func (sp *SubscriptionPlanStorage) CreateSubscriptionPlan(plan *models.SubscriptionPlan) (int64, error) {
+func (sp *subscriptionPlanStorage) CreateSubscriptionPlan(plan *models.CreateSubscriptionPlan) (*models.SubscriptionPlan, error) {
 	query := `
-    INSERT INTO subscription_plans (country, name, description, duration_months, data_limit_gb, speed_limit_mbps, device_limit, price)
-    VALUES (:country, :name, :description, :duration_months, :data_limit_gb, :speed_limit_mbps, :device_limit, :price)
+    INSERT INTO subscription_plans (name, description, price, duration_days, vpn_server_id)
+    VALUES (:name, :description, :price, :duration_days, :vpn_server_id) RETURNING *
     `
-	result, err := sp.db.NamedExec(query, plan)
+	rows, err := sp.db.NamedQuery(query, plan)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create subscription plan: %w", err)
+		if strings.Contains(err.Error(), "UNIQUE constraint failed: subscription_plans.name") {
+			return nil, coreErrors.ErrorAlreadyExist
+		}
+
+		return nil, fmt.Errorf("failed to create subscription plan: %w", err)
 	}
 
-	planID, err := result.LastInsertId()
-	if err != nil {
-		return 0, fmt.Errorf("failed to retrieve last insert ID: %w", err)
+	defer rows.Close()
+
+	if !rows.Next() {
+		return nil, fmt.Errorf("rows next error")
 	}
 
-	return planID, nil
+	var createdSubscriptionPlan models.SubscriptionPlan
+
+	err = rows.StructScan(&createdSubscriptionPlan)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan of created subscription plan: %w", err)
+	}
+
+	return &createdSubscriptionPlan, nil
 }
 
 // UpdateSubscriptionPlan updates an existing subscription plan in the database
-func (sp *SubscriptionPlanStorage) UpdateSubscriptionPlan(plan *models.SubscriptionPlan) error {
-	query := `
+func (sp *subscriptionPlanStorage) UpdateSubscriptionPlan(updatePlanId int64, updatePlanPayload *models.UpdateSubscriptionPlan) (*models.SubscriptionPlan, error) {
+	// TODO: for change vpn server id need to change clients configs
+
+	query := fmt.Sprintf(`
     UPDATE subscription_plans
-    SET country = :country, name = :name, description = :description,
-        duration_months = :duration_months, data_limit_gb = :data_limit_gb,
-        speed_limit_mbps = :speed_limit_mbps, device_limit = :device_limit,
-        price = :price
-    WHERE id = :id
-    `
+    SET name = :name,
+		description = :description,
+		price = :price,
+		duration_days = :duration_days
+    WHERE id = %d RETURNING *
+    `, updatePlanId)
 
-	result, err := sp.db.NamedExec(query, plan)
+	rows, err := sp.db.NamedQuery(query, updatePlanPayload)
 	if err != nil {
-		return fmt.Errorf("failed to update subscription plan: %w", err)
+		return nil, fmt.Errorf("failed to update subscription plan: %w", err)
 	}
 
-	rowsAffected, err := result.RowsAffected()
+	defer rows.Close()
+
+	if !rows.Next() {
+		return nil, coreErrors.ErrorNotFound
+	}
+
+	var updatedPlan models.SubscriptionPlan
+
+	err = rows.StructScan(&updatedPlan)
+
 	if err != nil {
-		return fmt.Errorf("failed to get affected rows: %w", err)
+		return nil, fmt.Errorf("struct scan error: %w", err)
 	}
 
-	if rowsAffected == 0 {
-		return coreErrors.ErrorNotFound
-	}
-	return nil
+	return &updatedPlan, nil
 }
 
 // DeleteSubscriptionPlanByID deletes the subscription plan by ID
-func (sp *SubscriptionPlanStorage) DeleteSubscriptionPlanByID(id int64) error {
+func (sp *subscriptionPlanStorage) DeleteSubscriptionPlanByID(id int64) error {
 	query := "DELETE FROM subscription_plans WHERE id = ?"
 	result, err := sp.db.Exec(query, id)
 	if err != nil {

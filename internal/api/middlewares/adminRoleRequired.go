@@ -3,8 +3,8 @@ package middlewares
 import (
 	"bizarre-vpn-api/internal/api/handlers"
 	"bizarre-vpn-api/internal/api/helpers"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	"fmt"
 	"log/slog"
 	"net/http"

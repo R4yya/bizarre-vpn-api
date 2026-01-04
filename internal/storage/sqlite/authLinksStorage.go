@@ -1,8 +1,8 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/coreErrors"
 	"fmt"
 )
 
@@ -60,8 +60,6 @@ func (s *AuthLinksStorage) CreateItem(payload *models.AuthLinkCreatePayload) (*m
 	if err != nil {
 		return nil, fmt.Errorf("failed to create auth link: %w", err)
 	}
-
-	fmt.Println("rows", rows)
 
 	defer rows.Close()
 

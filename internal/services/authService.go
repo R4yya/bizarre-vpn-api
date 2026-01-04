@@ -5,24 +5,25 @@ import (
 	"fmt"
 	"log/slog"
 
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/lib/jwt"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services/interfaces"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/jwt"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthService struct {
 	log                    *slog.Logger
-	userStorage            UserStorage
-	lnkUserProviderStorage LnkUserProviderStorage
+	userStorage            interfaces.UserStorage
+	lnkUserProviderStorage interfaces.LnkUserProviderStorage
 }
 
 func NewAuthService(
 	log *slog.Logger,
-	userStorage UserStorage,
-	lnkUserProviderStorage LnkUserProviderStorage,
+	userStorage interfaces.UserStorage,
+	lnkUserProviderStorage interfaces.LnkUserProviderStorage,
 ) *AuthService {
 	return &AuthService{
 		userStorage:            userStorage,

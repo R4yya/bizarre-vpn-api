@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"bizarre-vpn-api/internal/lib/jwt"
+	"bizarre-vpn-api/internal/shared/jwt"
 	"fmt"
 
 	"github.com/gin-gonic/gin"

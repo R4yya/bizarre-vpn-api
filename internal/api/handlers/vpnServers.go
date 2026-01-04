@@ -1,15 +1,14 @@
 package handlers
 
 import (
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/models"
 	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
-	"slices"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -165,18 +164,10 @@ func (h *VpnServersHandler) CreateItem(c *gin.Context) {
 	if err != nil {
 		log.Error("error of getting created vpnServerExpanded", sl.Err(err))
 
-		errorSlice := []coreErrors.ErrorVpnServer{
-			coreErrors.ErrorVpnServerInvalidIp,
-			coreErrors.ErrorVpnServerInvalidPort,
-			coreErrors.ErrorVpnServerNameIsTooSmall,
-			coreErrors.ErrorVpnServerUniqueConstraint,
-			coreErrors.ErrorVpnServerUniqueConstraintHostAndPort,
-			coreErrors.ErrorVpnServerUniqueConstraintName,
-		}
+		var validation coreErrors.ValidationError
 
-		if slices.Contains(errorSlice, err) {
+		if errors.As(err, &validation) {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
-			c.Abort()
 			return
 		}
 

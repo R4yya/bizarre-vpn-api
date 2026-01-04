@@ -1,4 +1,4 @@
-package userService
+package services
 
 import (
 	"errors"
@@ -6,22 +6,22 @@ import (
 	"log/slog"
 	"unicode/utf8"
 
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services/interfaces"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
 	log         *slog.Logger
-	userStorage services.UserStorage
+	userStorage interfaces.UserStorage
 }
 
 func NewUserService(
 	log *slog.Logger,
-	userStorage services.UserStorage,
+	userStorage interfaces.UserStorage,
 ) *UserService {
 	return &UserService{
 		log:         log,
@@ -65,19 +65,37 @@ func (s *UserService) CreateUser(payload *models.CreateUserPayload) (*models.Bas
 	log.Debug("CreateUser start")
 
 	if payload.Role != models.UserRoleClient && payload.Role != models.UserRoleAdmin {
-		return nil, coreErrors.ErrorIncorrectRole
+		return nil, coreErrors.ValidationError{
+			Entity: "user",
+			Msg:    "incorrect value",
+			Fields: []string{
+				"role",
+			},
+		}
 	}
 
 	if payload.Login != nil {
-		if utf8.RuneCountInString(*payload.Login) < 5 {
-			return nil, coreErrors.ErrorLoginIsTooSmall
+		if loginLength := utf8.RuneCountInString(*payload.Login); loginLength < 5 || loginLength >= 20 {
+			return nil, coreErrors.ValidationError{
+				Entity: "user",
+				Msg:    "must be longer than 5 and shorter than 20",
+				Fields: []string{
+					"login",
+				},
+			}
 		}
 	}
 
 	if payload.Password != nil {
 		//TODO: add more strange password validation
-		if utf8.RuneCountInString(*payload.Password) < 5 {
-			return nil, coreErrors.ErrorInvalidPassword
+		if passwordLength := utf8.RuneCountInString(*payload.Password); passwordLength < 5 || passwordLength >= 250 {
+			return nil, coreErrors.ValidationError{
+				Entity: "user",
+				Msg:    "must be longer than 5 and shorter than 250",
+				Fields: []string{
+					"password",
+				},
+			}
 		}
 
 		passwordHash, err := bcrypt.GenerateFromPassword([]byte(*payload.Password), bcrypt.DefaultCost)
@@ -95,7 +113,7 @@ func (s *UserService) CreateUser(payload *models.CreateUserPayload) (*models.Bas
 
 	if err != nil {
 		if errors.Is(err, coreErrors.ErrorAlreadyExist) {
-			return nil, coreErrors.ErrorLoginOccupied
+			return nil, coreErrors.ErrorAlreadyExist
 		}
 
 		return nil, fmt.Errorf("%v: create user error: %w", op, err)

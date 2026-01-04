@@ -9,11 +9,10 @@ import (
 
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/bot"
-	"bizarre-vpn-api/internal/core/coreErrors"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services/authLinkService"
-	"bizarre-vpn-api/internal/services/userService"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,8 +20,8 @@ import (
 type UserHandler struct {
 	Log             *slog.Logger
 	BotSharedData   *bot.BotSharedData
-	UserService     *userService.UserService
-	AuthLinkService *authLinkService.AuthLinkService
+	UserService     *services.UserService
+	AuthLinkService *services.AuthLinkService
 }
 
 type UserAuthorizationRequest struct {
@@ -156,10 +155,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	createdUser, err := h.UserService.CreateUser(&body)
 
 	if err != nil {
-		if errors.Is(coreErrors.ErrorIncorrectRole, err) ||
-			errors.Is(coreErrors.ErrorInvalidPassword, err) ||
-			errors.Is(coreErrors.ErrorLoginOccupied, err) ||
-			errors.Is(coreErrors.ErrorLoginIsTooSmall, err) {
+		var validation coreErrors.ValidationError
+
+		if errors.As(err, &validation) {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		if errors.Is(coreErrors.ErrorAlreadyExist, err) {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return
