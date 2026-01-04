@@ -1,8 +1,7 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -36,7 +35,7 @@ func (ps *LnkProtocolsBackendTypesStorage) MustInit() {
 	tx.Commit()
 }
 
-func (ps *LnkProtocolsBackendTypesStorage) initWithTransaction(executor storage.Executor) error {
+func (ps *LnkProtocolsBackendTypesStorage) initWithTransaction(executor Executor) error {
 	query := `CREATE TABLE IF NOT EXISTS lnk_protocols_backend_types(
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		protocol_id INTEGER NOT NULL,
@@ -78,7 +77,7 @@ func (s *LnkProtocolsBackendTypesStorage) GetProtocolsByBackendTypeId(backendTyp
 		WHERE lpbt.backend_type_id = ?
 		`
 
-	items := []models.LibraryItem{}
+	items := make([]models.LibraryItem, 0)
 
 	err := s.db.Select(&items, query, backendTypeId)
 

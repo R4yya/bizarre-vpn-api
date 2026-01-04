@@ -1,8 +1,7 @@
 package sqlite
 
 import (
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -50,7 +49,7 @@ func (s *LibraryItemStorage) mustInit() {
 	tx.Commit()
 }
 
-func (s *LibraryItemStorage) initWithTransaction(executor storage.Executor) error {
+func (s *LibraryItemStorage) initWithTransaction(executor Executor) error {
 	query := fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %v(
 		id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
@@ -78,7 +77,7 @@ func (s *LibraryItemStorage) initWithTransaction(executor storage.Executor) erro
 func (s *LibraryItemStorage) GetList() (*[]models.LibraryItem, error) {
 	query := fmt.Sprintf(`SELECT * FROM %v`, s.tableName)
 
-	list := []models.LibraryItem{}
+	list := make([]models.LibraryItem, 0)
 
 	err := s.db.Select(&list, query)
 

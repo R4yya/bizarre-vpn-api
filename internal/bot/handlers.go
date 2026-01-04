@@ -9,9 +9,10 @@ import (
 
 	tele "gopkg.in/telebot.v4"
 
-	"bizarre-vpn-api/internal/config"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services/authLinkService"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/shared/config"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
@@ -43,22 +44,22 @@ func handleStart(c tele.Context, webAppUrl string, log *slog.Logger, storage *cS
 
 	payload := c.Message().Payload
 
-	if payload == "" || utf8.RuneCountInString(payload) != authLinkService.LinkUserCodeLength {
+	if payload == "" || utf8.RuneCountInString(payload) != services.LinkUserCodeLength {
 		return c.Send("Запросите инвайт ссылку у представителя bizarre")
 	}
 
-	authLinkServiceInstance := authLinkService.NewAuthLinksService(log, storage.AuthLinksStorage, storage.LnkUserProviderStorage)
+	authLinkServiceInstance := services.NewAuthLinksService(log, storage.AuthLinksStorage, storage.LnkUserProviderStorage)
 
 	preparedExternalId := strconv.Itoa(int(teleUser.ID))
 
 	userId, err := authLinkServiceInstance.LinkUserWithTgProviderByCode(payload, preparedExternalId)
 
 	if err != nil {
-		if errors.Is(err, authLinkService.ErrUserAlreadyLinked) {
+		if errors.Is(err, coreErrors.ErrorUserAlreadyLinked) {
 			return c.Send("Ваш аккаунт уже привязан")
 		}
 
-		if errors.Is(err, authLinkService.ErrAuthLinkNotFound) {
+		if errors.Is(err, coreErrors.ErrorNotFound) {
 			return c.Send("Ссылка не действительна")
 		}
 

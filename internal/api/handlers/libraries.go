@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"bizarre-vpn-api/internal/lib/logger/sl"
 	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	"fmt"
 	"log/slog"
 	"net/http"

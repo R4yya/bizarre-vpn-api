@@ -6,10 +6,10 @@ import (
 
 	"bizarre-vpn-api/internal/api/routes"
 	botInternal "bizarre-vpn-api/internal/bot"
-	"bizarre-vpn-api/internal/config"
-	slogWrapper "bizarre-vpn-api/internal/lib/logger"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services/userService"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/shared/config"
+	slogWrapper "bizarre-vpn-api/internal/shared/logger"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 
@@ -40,7 +40,7 @@ func main() {
 
 	storage := cStorage.MustInit(cfg.StoragePath, log)
 
-	userService := userService.NewUserService(
+	userService := services.NewUserService(
 		log,
 		storage.UserStorage,
 	)

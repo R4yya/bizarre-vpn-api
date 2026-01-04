@@ -9,10 +9,10 @@ import (
 
 	"bizarre-vpn-api/internal/api/helpers"
 	"bizarre-vpn-api/internal/bot"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/services/authLinkService"
-	"bizarre-vpn-api/internal/services/userService"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,8 +20,8 @@ import (
 type UserHandler struct {
 	Log             *slog.Logger
 	BotSharedData   *bot.BotSharedData
-	UserService     *userService.UserService
-	AuthLinkService *authLinkService.AuthLinkService
+	UserService     *services.UserService
+	AuthLinkService *services.AuthLinkService
 }
 
 type UserAuthorizationRequest struct {
@@ -32,7 +32,7 @@ type UserAuthorizationRequest struct {
 }
 
 // GetUserDataHandler processes the user authorization request
-// @Summary Get User Data
+// @Summary Get Users Data List
 // @Security token
 // @scope.admin only administrative information
 // @Description Getting base user list for admin
@@ -155,10 +155,14 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	createdUser, err := h.UserService.CreateUser(&body)
 
 	if err != nil {
-		if errors.Is(userService.ErrIncorrectRole, err) ||
-			errors.Is(userService.ErrInvalidPassword, err) ||
-			errors.Is(userService.ErrLoginOccupied, err) ||
-			errors.Is(userService.ErrLoginIsTooSmall, err) {
+		var validation coreErrors.ValidationError
+
+		if errors.As(err, &validation) {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+			return
+		}
+
+		if errors.Is(coreErrors.ErrorAlreadyExist, err) {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return
@@ -214,7 +218,7 @@ func (h *UserHandler) CreateUserAuthLink(c *gin.Context) {
 	authLink, err := h.AuthLinkService.CreateItem(userId)
 
 	if err != nil {
-		if errors.Is(authLinkService.ErrUserAlreadyLinked, err) {
+		if errors.Is(coreErrors.ErrorUserAlreadyLinked, err) {
 			c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
 			c.Abort()
 			return

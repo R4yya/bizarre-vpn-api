@@ -1,7 +1,7 @@
 package middlewares
 
 import (
-	"bizarre-vpn-api/internal/lib/formatting"
+	"bizarre-vpn-api/internal/shared/formatting"
 	"fmt"
 	"log/slog"
 	"strings"

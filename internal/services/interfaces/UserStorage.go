@@ -1,8 +1,8 @@
-package services
+package interfaces
 
 import (
+	"bizarre-vpn-api/internal/models"
 	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
 )
 
 type UserStorage interface {
@@ -13,18 +13,4 @@ type UserStorage interface {
 	GetUserRefreshToken(ID int64) (string, error)
 	CreateUser(payload *models.CreateUserPayload, executor storage.Executor) (*models.BaseUser, error)
 	UpdateUserRefreshToken(ID int64, refreshToken string) error
-}
-
-type LnkUserProviderStorage interface {
-	GetItemByType(
-		providerType string,
-		externalId string,
-	) (LnkUserProvider *models.LnkUserProvider, isFound bool, Err error)
-
-	GetListByUserId(userId int64) (*[]models.LnkUserProvider, error)
-
-	CreateLnkUserProvider(
-		createLnkUserProviderPayload *models.CreateLnkUserProviderPayload,
-		executor storage.Executor,
-	) (*models.LnkUserProvider, error)
 }

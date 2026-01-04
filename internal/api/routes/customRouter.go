@@ -2,7 +2,7 @@ package routes
 
 import (
 	"bizarre-vpn-api/internal/bot"
-	"bizarre-vpn-api/internal/config"
+	"bizarre-vpn-api/internal/shared/config"
 	"bizarre-vpn-api/internal/storage/sqlite"
 	"fmt"
 	"log/slog"

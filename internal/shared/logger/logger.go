@@ -7,8 +7,8 @@ import (
 
 	"gopkg.in/natefinch/lumberjack.v2"
 
-	"bizarre-vpn-api/internal/config"
-	"bizarre-vpn-api/internal/lib/logger/handlers/slogpretty"
+	"bizarre-vpn-api/internal/shared/config"
+	"bizarre-vpn-api/internal/shared/logger/handlers/slogpretty"
 )
 
 func SetupLogger(env string) *slog.Logger {

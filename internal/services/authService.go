@@ -5,28 +5,25 @@ import (
 	"fmt"
 	"log/slog"
 
-	"bizarre-vpn-api/internal/lib/jwt"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/services/interfaces"
+	"bizarre-vpn-api/internal/shared/coreErrors"
+	"bizarre-vpn-api/internal/shared/jwt"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
-var (
-	ErrorAuthServiceIncorrectUsernameOrPass = errors.New("incorrect username or password")
-)
-
 type AuthService struct {
 	log                    *slog.Logger
-	userStorage            UserStorage
-	lnkUserProviderStorage LnkUserProviderStorage
+	userStorage            interfaces.UserStorage
+	lnkUserProviderStorage interfaces.LnkUserProviderStorage
 }
 
 func NewAuthService(
 	log *slog.Logger,
-	userStorage UserStorage,
-	lnkUserProviderStorage LnkUserProviderStorage,
+	userStorage interfaces.UserStorage,
+	lnkUserProviderStorage interfaces.LnkUserProviderStorage,
 ) *AuthService {
 	return &AuthService{
 		userStorage:            userStorage,
@@ -162,8 +159,8 @@ func (au *AuthService) AuthorizeByCredentials(
 	user, err := au.userStorage.GetUserByLogin(login)
 
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+		if errors.Is(err, coreErrors.ErrorNotFound) {
+			return "", "", coreErrors.ErrorIncorrectLoginOrPass
 		}
 
 		return "", "", fmt.Errorf("%v: error when getting user: %w", op, err)
@@ -172,17 +169,13 @@ func (au *AuthService) AuthorizeByCredentials(
 	userHashedPassword, err := au.userStorage.GetUserPasswordHash(user.ID)
 
 	if err != nil {
-		if errors.Is(err, storage.ErrUserNotFound) {
-			return "", "", ErrorAuthServiceIncorrectUsernameOrPass
-		}
-
 		return "", "", fmt.Errorf("%v: error when getting user password hash : %w", op, err)
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(userHashedPassword), []byte(password))
 
 	if err != nil {
-		return "", "", ErrorAuthServiceIncorrectUsernameOrPass
+		return "", "", coreErrors.ErrorIncorrectLoginOrPass
 	}
 
 	return au.getAuthorizeTokens(user, accessSecretKey, refreshSecretKey)

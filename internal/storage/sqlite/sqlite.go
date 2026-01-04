@@ -7,16 +7,18 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "modernc.org/sqlite"
 
-	"bizarre-vpn-api/internal/lib/fs"
-	"bizarre-vpn-api/internal/lib/logger/sl"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/fs"
+	"bizarre-vpn-api/internal/shared/logger/sl"
+	"bizarre-vpn-api/internal/storage"
 )
 
-type Database = *sqlx.DB
+type Database = storage.Database
+type Executor = storage.Executor
 
 type Storage struct {
 	db                              Database
-	SubscriptionPlanStorage         *SubscriptionPlanStorage
+	SubscriptionPlanStorage         *subscriptionPlanStorage
 	UserStorage                     *UserStorage
 	LnkUserProviderStorage          *LnkUserProviderStorage
 	BackendTypesStorage             *LibraryItemStorage
@@ -54,7 +56,7 @@ func MustInit(dbPath string, log *slog.Logger) *Storage {
 	}
 	lnkUserProviderStorage.MustInit()
 
-	subscriptionPlanStorage := &SubscriptionPlanStorage{db}
+	subscriptionPlanStorage := &subscriptionPlanStorage{db}
 	subscriptionPlanStorage.MustInit()
 
 	protocolsStorage := NewLibraryItemStorage(

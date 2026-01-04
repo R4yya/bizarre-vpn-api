@@ -7,8 +7,8 @@ import (
 
 	tele "gopkg.in/telebot.v4"
 
-	"bizarre-vpn-api/internal/config"
-	"bizarre-vpn-api/internal/lib/logger/sl"
+	"bizarre-vpn-api/internal/shared/config"
+	"bizarre-vpn-api/internal/shared/logger/sl"
 	cStorage "bizarre-vpn-api/internal/storage/sqlite"
 )
 

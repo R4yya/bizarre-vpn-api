@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"bizarre-vpn-api/internal/storage"
-	"bizarre-vpn-api/internal/storage/models"
+	"bizarre-vpn-api/internal/models"
+	"bizarre-vpn-api/internal/shared/coreErrors"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -38,7 +38,7 @@ func (u *UserStorage) MustInit() {
 }
 
 func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
-	var usersList []models.FullUser
+	usersList := make([]models.FullUser, 0)
 
 	query := `SELECT 
 	id,
@@ -64,7 +64,7 @@ func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
 }
 
 // GetUserByTelegramID gets the user by Telegram ID
-func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.BaseUser, error) {
+func (u *UserStorage) GetUserById(ID int64, executor Executor) (*models.BaseUser, error) {
 	if executor == nil {
 		executor = u.db
 	}
@@ -82,7 +82,7 @@ func (u *UserStorage) GetUserById(ID int64, executor storage.Executor) (*models.
 	err := sqlx.Get(executor, &user, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrUserNotFound
+			return nil, coreErrors.ErrorNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -105,7 +105,7 @@ func (u *UserStorage) GetUserByLogin(login string) (*models.BaseUser, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, storage.ErrUserNotFound
+			return nil, coreErrors.ErrorNotFound
 		}
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
@@ -122,7 +122,7 @@ func (u *UserStorage) GetUserPasswordHash(userId int64) (string, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", storage.ErrUserNotFound
+			return "", coreErrors.ErrorNotFound
 		}
 
 		return "", fmt.Errorf("failed to get user password hash: %w", err)
@@ -134,7 +134,7 @@ func (u *UserStorage) GetUserPasswordHash(userId int64) (string, error) {
 // CreateUser add a new user to the database
 func (u *UserStorage) CreateUser(
 	payload *models.CreateUserPayload,
-	executor storage.Executor,
+	executor Executor,
 ) (*models.BaseUser, error) {
 	if executor == nil {
 		executor = u.db
@@ -166,7 +166,7 @@ func (u *UserStorage) CreateUser(
 
 	if err != nil {
 		if strings.Contains(err.Error(), "UNIQUE constraint failed: users.login") {
-			return nil, storage.ErrLoginOccupied
+			return nil, coreErrors.ErrorAlreadyExist
 		}
 
 		return nil, fmt.Errorf("failed to create user: %w", err)
@@ -194,7 +194,7 @@ func (u *UserStorage) GetUserRefreshToken(ID int64) (string, error) {
 	err := u.db.Get(&refreshToken, query, ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", storage.ErrUserNotFound
+			return "", coreErrors.ErrorNotFound
 		}
 		return "", fmt.Errorf("failed to get user: %w", err)
 	}
