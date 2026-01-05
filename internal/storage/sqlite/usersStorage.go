@@ -38,7 +38,7 @@ func (u *UserStorage) MustInit() {
 }
 
 func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
-	usersList := make([]models.FullUser, 0)
+	usersList := make([]models.BaseUser, 0)
 
 	query := `SELECT 
 	id,
@@ -54,13 +54,13 @@ func (u *UserStorage) GetUsersList() (*[]models.BaseUser, error) {
 		return nil, fmt.Errorf("getting users list error: %w", err)
 	}
 
-	var basicUsersList []models.BaseUser
+	// basicUsersList []models.BaseUser
 
-	for _, fullUser := range usersList {
-		basicUsersList = append(basicUsersList, fullUser.BaseUser)
-	}
+	// for _, fullUser := range usersList {
+	// 	basicUsersList = append(basicUsersList, fullUser.BaseUser)
+	// }
 
-	return &basicUsersList, nil
+	return &usersList, nil
 }
 
 // GetUserByTelegramID gets the user by Telegram ID
@@ -91,7 +91,7 @@ func (u *UserStorage) GetUserById(ID int64, executor Executor) (*models.BaseUser
 }
 
 func (u *UserStorage) GetUserByLogin(login string) (*models.BaseUser, error) {
-	var user models.FullUser
+	var user models.BaseUser
 
 	query := `SELECT 
 	id,
@@ -110,7 +110,7 @@ func (u *UserStorage) GetUserByLogin(login string) (*models.BaseUser, error) {
 		return nil, fmt.Errorf("failed to get user: %w", err)
 	}
 
-	return &user.BaseUser, nil
+	return &user, nil
 }
 
 func (u *UserStorage) GetUserPasswordHash(userId int64) (string, error) {
@@ -140,26 +140,24 @@ func (u *UserStorage) CreateUser(
 		executor = u.db
 	}
 
-	user := &models.FullUser{
-		BaseUser: models.BaseUser{
-			Username: payload.Username,
-			Role:     payload.Role,
-		},
-		RefreshToken: "",
-	}
-
 	query := `
     INSERT INTO users (login, username, refresh_token, role, password)
-    VALUES (:login, :username, :refresh_token, :role, :password)`
+    VALUES (:login, :username, :refresh_token, :role, :password) RETURNING 
+		id,
+		username,
+		login,
+		role,
+		created_at,
+		updated_at `
 
 	rows, err := sqlx.NamedQuery(
 		executor,
 		query,
 		map[string]interface{}{
 			"login":         payload.Login,
-			"username":      user.Username,
-			"refresh_token": user.RefreshToken,
-			"role":          user.Role,
+			"username":      payload.Username,
+			"refresh_token": "",
+			"role":          payload.Role,
 			"password":      payload.Password,
 		},
 	)
@@ -176,12 +174,14 @@ func (u *UserStorage) CreateUser(
 
 	var createdUser models.BaseUser
 
-	if rows.Next() {
-		err = rows.StructScan(&user)
+	if !rows.Next() {
+		return nil, fmt.Errorf("no rows found")
+	}
 
-		if err != nil {
-			return nil, fmt.Errorf("failed to scan inserted user: %w", err)
-		}
+	err = rows.StructScan(&createdUser)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan inserted user: %w", err)
 	}
 
 	return &createdUser, nil

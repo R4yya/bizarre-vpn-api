@@ -42,7 +42,7 @@ type UserAuthorizationRequest struct {
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 403 {object} ErrorResponse "Forbidden"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /users/list [get]
+// @Router /users/ [get]
 func (h *UserHandler) GetUsersListHandler(c *gin.Context) {
 	const op = "handlers.user.GetUsersListHandler"
 
@@ -70,7 +70,7 @@ func (h *UserHandler) GetUsersListHandler(c *gin.Context) {
 // @Success 200 {object} models.BaseUser "User Data"
 // @Failure 401 {object} ErrorResponse "Unauthorized"
 // @Failure 500 {object} ErrorResponse "Internal server error"
-// @Router /users [get]
+// @Router /users/self [get]
 func (h *UserHandler) GetUserDataHandler(c *gin.Context) {
 	const op = "handlers.user.GetUserInfo"
 
